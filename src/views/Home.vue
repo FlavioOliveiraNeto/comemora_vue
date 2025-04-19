@@ -9,6 +9,7 @@
 
 <script>
 import { mapGetters, mapActions } from "vuex";
+import notifications from "../../utils/notifications_helper";
 
 export default {
   computed: {
@@ -21,8 +22,9 @@ export default {
     ...mapActions("auth", ["logout"]),
     async handleLogout() {
       try {
-        await this.logout();
+        const response = await this.logout();
         this.$router.push("/auth");
+        notifications.success(this.$store, response.data?.message);
       } catch (error) {
         console.error("Erro ao fazer logout:", error);
       }

@@ -59,10 +59,17 @@ const actions = {
       localStorage.removeItem('token')
       localStorage.removeItem('user')
       
-      if (error.response?.data?.error?.includes('confirm your email')) {
-        throw new Error('Sua conta deve estar confirmada. Verifique seu email.')
+      // Tratamento de erro melhorado
+      let errorMessage = 'Erro ao logar'
+      if (error.response) {
+        if (error.response.data.errors) {
+          errorMessage = Object.values(error.response.data.errors).join(', ')
+        } else if (error.response.data.error) {
+          errorMessage = error.response.data.error
+        }
       }
-      throw error
+      
+      throw new Error(errorMessage)
     }
   },
   
@@ -120,13 +127,36 @@ const actions = {
     }
   },
   
-  logout({ commit }) {
-    return new Promise((resolve) => {
-      commit('LOGOUT')
+  async logout({ commit }) {
+    commit('LOGOUT')
+    try {
+      const token = localStorage.getItem('token')
+
+      const response = await api.delete('/users/sign_out', {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+
       localStorage.removeItem('token')
       localStorage.removeItem('user')
-      resolve()
-    })
+      
+      return response
+    } catch (error) {
+      commit('AUTH_ERROR')
+      
+      // Tratamento de erro melhorado
+      let errorMessage = 'Erro ao deslogar'
+      if (error.response) {
+        if (error.response.data.errors) {
+          errorMessage = Object.values(error.response.data.errors).join(', ')
+        } else if (error.response.data.error) {
+          errorMessage = error.response.data.error
+        }
+      }
+      
+      throw new Error(errorMessage)
+    }
   }
 }
 

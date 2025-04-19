@@ -18,39 +18,38 @@
       <button type="submit" class="btn btn-primary" :disabled="loading">
         {{ loading ? "Enviando..." : "Enviar instruções" }}
       </button>
-
-      <p v-if="error" class="error-message">{{ error }}</p>
-      <p v-if="success" class="success-message">
-        Email enviado com sucesso! Verifique sua caixa de entrada.
-      </p>
     </form>
   </div>
 </template>
 
 <script>
+import notifications from "../../../utils/notifications_helper";
+
 export default {
   data() {
     return {
       email: "",
       loading: false,
-      error: "",
-      success: false,
     };
   },
   methods: {
     async submitForgotPassword() {
       this.loading = true;
-      this.error = "";
-      this.success = false;
 
       try {
-        await this.$api.post("/users/password", {
+        const response = await this.$api.post("/users/password", {
           user: { email: this.email },
         });
-        this.success = true;
+        notifications.success(this.$store, response.data?.message);
       } catch (error) {
-        this.error =
-          error.response?.data?.error || "Erro ao enviar email de recuperação";
+        const errorMessage =
+          error.response.data.message + ": " + error.response.data.errors[0];
+        notifications.error(
+          this.$store,
+          errorMessage ||
+            error.response.data?.message ||
+            "Erro ao enviar email de recuperação"
+        );
       } finally {
         this.loading = false;
       }

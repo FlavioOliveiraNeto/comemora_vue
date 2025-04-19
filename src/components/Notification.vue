@@ -50,7 +50,7 @@ export default {
   border-radius: 4px;
   color: white;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  max-width: 300px;
+  max-width: max-content;
 }
 
 .notification--success {
@@ -69,8 +69,12 @@ export default {
   border: none;
   color: white;
   font-size: 1.2rem;
+}
+
+.notification__close:hover {
   cursor: pointer;
-  padding: 0 0.5rem;
+  background-color: #0000001f;
+  border-radius: 5rem;
 }
 
 .notification-enter-active,

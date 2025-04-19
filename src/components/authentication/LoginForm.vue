@@ -60,11 +60,13 @@ export default {
 
         const estaAutenticado = this.isAuthenticated;
 
-        estaAutenticado
-          ? this.$router.push("/home")
-          : notifications.error(this.$store, "Login falhou! Tente novamente.");
+        if (estaAutenticado) {
+          this.$router.push("/home");
+          notifications.success(this.$store, response.data?.message);
+        } else {
+          notifications.error(this.$store, "Login falhou! Tente novamente.");
+        }
       } catch (error) {
-        console.log(error);
         notifications.error(
           this.$store,
           error.message || "Credenciais inválidas"

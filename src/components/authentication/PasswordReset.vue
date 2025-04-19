@@ -30,16 +30,13 @@
       <button type="submit" class="btn btn-primary" :disabled="loading">
         {{ loading ? "Processando..." : "Redefinir senha" }}
       </button>
-
-      <p v-if="error" class="error-message">{{ error }}</p>
-      <p v-if="success" class="success-message">
-        Senha redefinida com sucesso! Você pode fazer login agora.
-      </p>
     </form>
   </div>
 </template>
 
 <script>
+import notifications from "../../../utils/notifications_helper";
+
 export default {
   data() {
     return {
@@ -47,43 +44,55 @@ export default {
       password: "",
       passwordConfirmation: "",
       loading: false,
-      error: "",
-      success: false,
     };
   },
   created() {
     this.resetPasswordToken = this.$route.query.reset_password_token || "";
     if (!this.resetPasswordToken) {
-      this.error = "Token de redefinição não encontrado na URL";
+      notifications.error(
+        this.$store,
+        "Token de redefinição não encontrado na URL"
+      );
     }
   },
   methods: {
     async submitResetPassword() {
       if (this.password !== this.passwordConfirmation) {
-        this.error = "As senhas não coincidem";
+        notifications.error(this.$store, "As senhas não coincidem");
         return;
       }
 
       if (this.password.length < 6) {
-        this.error = "A senha deve ter no mínimo 6 caracteres";
+        notifications.error(
+          this.$store,
+          "A senha deve ter no mínimo 6 caracteres"
+        );
         return;
       }
 
       this.loading = true;
-      this.error = "";
-      this.success = false;
 
       try {
-        await this.$api.put("/users/password", {
+        const response = await this.$api.put("/users/password", {
           user: {
             reset_password_token: this.resetPasswordToken,
             password: this.password,
             password_confirmation: this.passwordConfirmation,
           },
         });
-        this.success = true;
+
+        this.$router.push({ name: "login" });
+        notifications.success(this.$store, response.data?.message);
       } catch (error) {
-        this.error = error.response?.data?.error || "Erro ao redefinir senha";
+        console.log(error);
+        const errorMessage =
+          error.response.data.message + ": " + error.response.data.errors[0];
+        notifications.error(
+          this.$store,
+          errorMessage ||
+            error.response.data?.message ||
+            "Erro ao enviar email de recuperação"
+        );
       } finally {
         this.loading = false;
       }

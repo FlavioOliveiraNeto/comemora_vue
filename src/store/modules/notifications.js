@@ -22,12 +22,12 @@
         id,
         type,
         message: notification.message,
-        timeout: notification.timeout || 15000 // 15 segundos padrão
+        timeout: notification.timeout || 8000 // 15 segundos padrão
       })
       
       setTimeout(() => {
         commit('REMOVE_NOTIFICATION', id)
-      }, notification.timeout || 15000)
+      }, notification.timeout || 8000)
     },
     removeNotification({ commit }, notificationId) {
       commit('REMOVE_NOTIFICATION', notificationId)
