@@ -1,10 +1,17 @@
 <template>
-  <nav>
-    <router-link to="/">Home</router-link> |
-    <router-link to="/about">About</router-link>
-  </nav>
-  <router-view/>
+  <notification />
+  <router-view />
 </template>
+
+<script>
+import Notification from "@/components/Notification";
+
+export default {
+  components: {
+    Notification,
+  },
+};
+</script>
 
 <style>
 #app {
