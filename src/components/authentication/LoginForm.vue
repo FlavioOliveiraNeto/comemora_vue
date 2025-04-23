@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="card">
     <h1>Login</h1>
     <form @submit.prevent="handleLogin">
       <div class="form-group">
