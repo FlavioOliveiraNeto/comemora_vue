@@ -1,6 +1,6 @@
 <template>
   <div class="password-container">
-    <div class="password-card">
+    <div class="card">
       <router-view />
       <div class="back-to-login">
         <router-link :to="{ name: 'login' }">Voltar para login</router-link>
@@ -22,15 +22,6 @@ export default {
   align-items: center;
   min-height: 100vh;
   background-color: #f5f5f5;
-}
-
-.password-card {
-  background: white;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  width: 100%;
-  max-width: 400px;
 }
 
 .back-to-login {

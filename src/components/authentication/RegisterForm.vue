@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="card">
     <h1>Registro</h1>
     <form @submit.prevent="handleRegister">
       <div class="form-group">
@@ -97,11 +97,4 @@ export default {
 };
 </script>
 
-<style scoped>
-.success-message {
-  color: #42b983;
-  margin-top: 1rem;
-}
-
-/* Reutiliza os estilos do LoginForm */
-</style>
+<style scoped></style>

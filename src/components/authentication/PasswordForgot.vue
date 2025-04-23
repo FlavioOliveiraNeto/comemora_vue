@@ -58,36 +58,4 @@ export default {
 };
 </script>
 
-<style scoped>
-.form-group {
-  margin-bottom: 1rem;
-}
-
-.form-control {
-  width: 100%;
-  padding: 0.5rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-}
-
-.btn-primary {
-  background-color: #42b983;
-  color: white;
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  width: 100%;
-  margin-top: 1rem;
-}
-
-.error-message {
-  color: #ff4444;
-  margin-top: 1rem;
-}
-
-.success-message {
-  color: #42b983;
-  margin-top: 1rem;
-}
-</style>
+<style scoped></style>
