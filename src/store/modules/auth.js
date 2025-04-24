@@ -1,4 +1,4 @@
-import api from '@/services/axiosConfig' // Importe sua instância do axios
+import api from '@/services/axiosConfig'
 
 const state = {
   user: JSON.parse(localStorage.getItem('user')) || null,
@@ -41,13 +41,15 @@ const actions = {
       })
       
       const token = response.headers['authorization'] || response.data.token
-      const user = {
-        email: credentials.email,
-        name: credentials.name,
-        role: 'guest'
-      }
+      const userData = response.data.user
 
-      if(token && user) {
+      if(token && userData) {
+        const user = {
+          email: userData.email,
+          name: userData.name,
+          role: userData.role || 'guest'
+        }
+
         localStorage.setItem('token', token)
         localStorage.setItem('user', JSON.stringify(user))
         
@@ -128,34 +130,27 @@ const actions = {
   },
   
   async logout({ commit }) {
-    commit('LOGOUT')
     try {
-      const token = localStorage.getItem('token')
-
-      const response = await api.delete('/users/sign_out', {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      })
-
+      // Limpa os dados locais primeiro
       localStorage.removeItem('token')
       localStorage.removeItem('user')
+      commit('LOGOUT')
+
+      // Tenta fazer logout no backend
+      await api.delete('/users/sign_out')
       
-      return response
+      return { success: true }
     } catch (error) {
-      commit('AUTH_ERROR')
+      // Mesmo se o logout no backend falhar, limpa o frontend
+      commit('LOGOUT')
       
       // Tratamento de erro melhorado
-      let errorMessage = 'Erro ao deslogar'
+      let errorMessage = 'Logout concluído (erro na comunicação com o servidor)'
       if (error.response) {
-        if (error.response.data.errors) {
-          errorMessage = Object.values(error.response.data.errors).join(', ')
-        } else if (error.response.data.error) {
-          errorMessage = error.response.data.error
-        }
+        errorMessage = error.response.data?.error || errorMessage
       }
       
-      throw new Error(errorMessage)
+      return { success: false, message: errorMessage }
     }
   }
 }
