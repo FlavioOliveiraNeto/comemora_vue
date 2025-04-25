@@ -62,10 +62,10 @@ const actions = {
       localStorage.removeItem('user')
       
       // Tratamento de erro melhorado
-      let errorMessage = 'Erro ao logar'
+      let errorMessage = ''
       if (error.response) {
-        if (error.response.data.errors) {
-          errorMessage = Object.values(error.response.data.errors).join(', ')
+        if (error.response.data) {
+          errorMessage = error.response.data
         } else if (error.response.data.error) {
           errorMessage = error.response.data.error
         }

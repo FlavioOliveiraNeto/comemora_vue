@@ -3,7 +3,6 @@
     <header class="user-info">
       <h1>Bem-vindo, {{ user.name }}!</h1>
       <p>Seu email: {{ user.email }}</p>
-      <p>Função: {{ user.role }}</p>
       <button @click="handleLogout" class="logout-btn">Sair</button>
       <button @click="goToCreateEvent" class="create-event-btn">
         Criar Evento
