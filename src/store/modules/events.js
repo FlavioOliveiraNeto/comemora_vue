@@ -1,60 +1,114 @@
-import api from '@/services/axiosConfig'
+import api from '@/services/axiosConfig';
 
 export default {
+  namespaced: true,
   state: {
     organizedEvents: [],
     participatingEvents: []
   },
   mutations: {
     SET_ORGANIZED_EVENTS(state, events) {
-      state.organizedEvents = events
+      state.organizedEvents = events;
     },
     SET_PARTICIPATING_EVENTS(state, events) {
-      state.participatingEvents = events
+      state.participatingEvents = events;
     },
     ADD_EVENT(state, event) {
-      state.organizedEvents.push(event)
+      state.organizedEvents.push(event);
     },
     UPDATE_EVENT(state, updatedEvent) {
-      const index = state.organizedEvents.findIndex(e => e.id === updatedEvent.id)
+      const index = state.organizedEvents.findIndex(e => e.id === updatedEvent.id);
       if (index !== -1) {
-        Vue.set(state.organizedEvents, index, updatedEvent)
+        state.organizedEvents.splice(index, 1, updatedEvent);
       }
     },
     REMOVE_EVENT(state, eventId) {
-      state.organizedEvents = state.organizedEvents.filter(e => e.id !== eventId)
+      state.organizedEvents = state.organizedEvents.filter(e => e.id !== eventId);
     },
     LEAVE_EVENT(state, eventId) {
-      state.participatingEvents = state.participatingEvents.filter(e => e.id !== eventId)
+      state.participatingEvents = state.participatingEvents.filter(e => e.id !== eventId);
     }
   },
   actions: {
     async fetchHomeEvents({ commit }) {
       try {
-        const response = await api.get('/api/home')
-        commit('SET_ORGANIZED_EVENTS', response.data.organized_events)
-        commit('SET_PARTICIPATING_EVENTS', response.data.participating_events)
-        return response
+        const response = await api.get('/api/home');
+        commit('SET_ORGANIZED_EVENTS', response.data.organized_events);
+        commit('SET_PARTICIPATING_EVENTS', response.data.participating_events);
+        return response;
       } catch (error) {
-        throw error
+        throw error;
       }
     },
+
+    async fetchEventById(_, eventId) {
+      try {
+        const response = await api.get(`/api/events/${eventId}`);
+        return response.data;
+      } catch (error) {
+        throw error;
+      }
+    },
+
+    async createEvent({ commit }, eventData) {
+      try {
+        const formData = new FormData();
+        
+        for (const key in eventData) {
+          if (eventData[key] !== null && eventData[key] !== undefined) {
+            formData.append(`event[${key}]`, eventData[key]);
+          }
+        }
+
+        const response = await api.post('/api/events', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        
+        commit('ADD_EVENT', response.data);
+        return response.data;
+      } catch (error) {
+        throw error;
+      }
+    },
+
+    async updateEvent({ commit }, { id, data }) {
+      try {
+        const formData = new FormData();
+        
+        for (const key in data) {
+          if (data[key] !== null && data[key] !== undefined) {
+            formData.append(`event[${key}]`, data[key]);
+          }
+        }
+
+        const response = await api.put(`/api/events/${id}`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        
+        commit('UPDATE_EVENT', response.data);
+        return response.data;
+      } catch (error) {
+        throw error;
+      }
+    },
+
     async deleteEvent({ commit }, eventId) {
       try {
-        await api.delete(`/api/events/${eventId}`)
-        commit('REMOVE_EVENT', eventId)
-        return { success: true }
+        await api.delete(`/api/events/${eventId}`);
+        commit('REMOVE_EVENT', eventId);
+        return { success: true };
       } catch (error) {
-        throw error
+        throw error;
       }
     },
+
     async leaveEvent({ commit }, eventId) {
       try {
-        await api.delete(`/api/events/${eventId}/leave`)
-        commit('LEAVE_EVENT', eventId)
-        return { success: true }
+        await api.delete(`/api/events/${eventId}/leave`);
+        commit('LEAVE_EVENT', eventId);
+        return { success: true };
       } catch (error) {
-        throw error
+        throw error;
       }
     }
   },
@@ -62,4 +116,4 @@ export default {
     organizedEvents: state => state.organizedEvents,
     participatingEvents: state => state.participatingEvents
   }
-}
+};

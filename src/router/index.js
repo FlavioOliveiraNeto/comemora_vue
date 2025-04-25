@@ -1,8 +1,15 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import store from '@/store'
+
 import Home from '@/views/Home.vue'
+
 import Auth from '@/views/authentication/Auth.vue'
+
 import ConfirmAccount from '@/views/authentication/ConfirmAccount.vue'
+
+import EventNew from '@/views/events/EventNew.vue'
+import EventEdit from '@/views/events/EventEdit.vue'
+import EventShow from '@/views/events/EventShow.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -52,6 +59,24 @@ const router = createRouter({
       path: '/home',
       name: 'home',
       component: Home,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/events/new',
+      name: 'EventNew',
+      component: EventNew,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/events/:id',
+      name: 'EventEdit',
+      component: EventEdit,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/events/:id/edit',
+      name: 'EventShow',
+      component: EventShow,
       meta: { requiresAuth: true }
     },
     {

@@ -1,7 +1,7 @@
 <template>
   <div class="home-container">
     <header class="user-info">
-      <h1>Bem-vindo, {{ user.name }}!</h1>
+      <h1>Bem-vindo(a), {{ user.name }}!</h1>
       <p>Seu email: {{ user.email }}</p>
       <button @click="handleLogout" class="logout-btn">Sair</button>
       <button @click="goToCreateEvent" class="create-event-btn">
