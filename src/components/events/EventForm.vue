@@ -196,10 +196,7 @@ export default {
       this.form.start_date = startDate;
       this.form.end_date = endDate;
 
-      const payload = {
-        ...this.form,
-      };
-      this.$emit("submit", payload);
+      this.$emit("form-submit", { ...this.form });
     },
     handleCancel() {
       this.$emit("cancel");

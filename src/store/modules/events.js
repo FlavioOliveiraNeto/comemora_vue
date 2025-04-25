@@ -52,43 +52,23 @@ export default {
 
     async createEvent({ commit }, eventData) {
       try {
-        const formData = new FormData();
-        
-        for (const key in eventData) {
-          if (eventData[key] !== null && eventData[key] !== undefined) {
-            formData.append(`event[${key}]`, eventData[key]);
-          }
-        }
-
-        const response = await api.post('/api/events', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
-        
+        const response = await api.post('/api/events', eventData)
+  
         commit('ADD_EVENT', response.data);
         return response.data;
       } catch (error) {
-        throw error;
+        throw new Error(error)
       }
     },
 
-    async updateEvent({ commit }, { id, data }) {
+    async updateEvent({ commit }, { id, eventData }) {
       try {
-        const formData = new FormData();
-        
-        for (const key in data) {
-          if (data[key] !== null && data[key] !== undefined) {
-            formData.append(`event[${key}]`, data[key]);
-          }
-        }
-
-        const response = await api.put(`/api/events/${id}`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
-        
+        const response = await api.put(`/api/events/${id}`, eventData)
+  
         commit('UPDATE_EVENT', response.data);
         return response.data;
       } catch (error) {
-        throw error;
+        throw new Error(error)
       }
     },
 

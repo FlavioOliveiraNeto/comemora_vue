@@ -3,7 +3,7 @@
     <EventForm
       ref="eventForm"
       :loading="loading"
-      @submit="handleCreateEvent"
+      @form-submit="handleCreateEvent"
       @cancel="handleCancel"
     />
   </div>
@@ -35,7 +35,7 @@ export default {
       } catch (error) {
         notifications.error(
           this.$store,
-          "Falha ao criar evento! Tente novamente."
+          error.message || "Falha ao criar evento! Tente novamente."
         );
       } finally {
         this.loading = false;

@@ -62,7 +62,7 @@ export default {
       try {
         await this.$store.dispatch("events/updateEvent", {
           id: this.$route.params.id,
-          data: eventData,
+          eventData: eventData,
         });
         notifications.success(this.$store, "Evento atualizado com sucesso!");
         this.$router.push("/home");

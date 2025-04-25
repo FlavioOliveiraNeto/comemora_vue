@@ -81,6 +81,9 @@ export default {
       participatingEvents: [],
     };
   },
+  created() {
+    this.fetchUserData();
+  },
   computed: {
     ...mapGetters("auth", ["currentUser", "isAuthenticated"]),
     user() {
@@ -94,7 +97,13 @@ export default {
     async fetchUserData() {
       try {
         // Use a action do store
-        await this.$store.dispatch("events/fetchHomeEvents");
+        const response = await this.$store.dispatch("events/fetchHomeEvents");
+
+        response.data.organized_events.length > 0
+          ? response.data.organized_events.map((event) => {
+              this.organizedEvents.push(event);
+            })
+          : (this.organizedEvents = []);
       } catch (error) {
         console.error("Erro ao carregar dados:", error);
         notifications.error(this.$store, "Erro ao carregar dados do usuário");
