@@ -69,14 +69,14 @@ const router = createRouter({
     },
     {
       path: '/events/:id',
-      name: 'EventEdit',
-      component: EventEdit,
+      name: 'EventShow',
+      component: EventShow,
       meta: { requiresAuth: true }
     },
     {
       path: '/events/:id/edit',
-      name: 'EventShow',
-      component: EventShow,
+      name: 'EventEdit',
+      component: EventEdit,
       meta: { requiresAuth: true }
     },
     {

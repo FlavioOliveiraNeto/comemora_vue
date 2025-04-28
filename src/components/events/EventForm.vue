@@ -9,7 +9,11 @@
         Voltar
       </button>
     </div>
-    <form @submit.prevent="handleSubmit" class="event-form">
+    <form
+      @submit.prevent="handleSubmit"
+      class="event-form"
+      enctype="multipart/form-data"
+    >
       <h2>{{ isEditing ? "Editar Evento" : "Criar Novo Evento" }}</h2>
 
       <!-- Upload do Banner -->
@@ -34,6 +38,13 @@
             </template>
             <img v-else :src="previewImage" class="preview-image" />
           </div>
+          <button
+            v-if="isEditing && previewImage"
+            @click.prevent="removeBanner"
+            class="btn btn-danger btn-sm mt-2"
+          >
+            Remover Banner
+          </button>
         </div>
       </div>
 
@@ -92,7 +103,7 @@
           v-model:location="form.location"
           :initial-latitude="latitude"
           :initial-longitude="longitude"
-          @update:location="handleLocationUpdate"
+          @update:location="updateLocation"
         />
       </div>
 
@@ -127,6 +138,7 @@ export default {
         end_date: "",
         location: "",
         banner: null,
+        keep_banner: false,
         ...this.event,
       },
       latitude: null,
@@ -147,9 +159,11 @@ export default {
     },
   },
   mounted() {
-    if (this.event?.banner_url) {
+    if (this.isEditing && this.event?.banner_url) {
       this.previewImage = this.event.banner_url;
+      this.form.keep_banner = true;
     }
+
     if (this.form.start_date) {
       this.form.start_date = moment(this.form.start_date).format(
         "YYYY-MM-DDTHH:mm"
@@ -165,6 +179,10 @@ export default {
     }
   },
   methods: {
+    updateLocation(newLocation) {
+      this.form.location = newLocation;
+      this.geocodeLocation(newLocation);
+    },
     async geocodeLocation(address) {
       try {
         const response = await fetch(
@@ -186,17 +204,42 @@ export default {
       const file = e.target.files[0];
       if (file) {
         this.form.banner = file;
+        this.form.keep_banner = false;
         this.previewImage = URL.createObjectURL(file);
       }
     },
+    removeBanner() {
+      this.form.banner = null;
+      this.form.keep_banner = false;
+      this.previewImage = null;
+      this.$refs.fileInput.value = "";
+    },
     handleSubmit() {
-      const startDate = moment(this.form.start_date).toISOString();
-      const endDate = moment(this.form.end_date).toISOString();
+      const formData = new FormData();
+      const eventData = {
+        title: this.form.title,
+        description: this.form.description,
+        start_date: moment(this.form.start_date).toISOString(),
+        end_date: moment(this.form.end_date).toISOString(),
+        location: this.form.location,
+        keep_banner: this.form.keep_banner,
+      };
 
-      this.form.start_date = startDate;
-      this.form.end_date = endDate;
+      Object.entries(eventData).forEach(([key, value]) => {
+        formData.append(`event[${key}]`, value);
+      });
 
-      this.$emit("form-submit", { ...this.form });
+      if (this.form.banner) {
+        formData.append("event[banner]", this.form.banner);
+      }
+
+      const config = {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      };
+
+      this.$emit("form-submit", formData, config);
     },
     handleCancel() {
       this.$emit("cancel");

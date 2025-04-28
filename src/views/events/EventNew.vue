@@ -23,19 +23,22 @@ export default {
     };
   },
   methods: {
-    async handleCreateEvent(eventData) {
+    async handleCreateEvent(formData) {
       this.loading = true;
       try {
         const response = await this.$store.dispatch(
           "events/createEvent",
-          eventData
+          formData
         );
-        notifications.success(this.$store, response.data?.message);
+
+        notifications.success(this.$store, response.message);
         this.$router.push("/home");
       } catch (error) {
         notifications.error(
           this.$store,
-          error.message || "Falha ao criar evento! Tente novamente."
+          error.response?.data?.message ||
+            error.message ||
+            "Falha ao criar evento! Tente novamente."
         );
       } finally {
         this.loading = false;

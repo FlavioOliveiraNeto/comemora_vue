@@ -50,9 +50,9 @@ export default {
       }
     },
 
-    async createEvent({ commit }, eventData) {
+    async createEvent({ commit }, formData) {
       try {
-        const response = await api.post('/api/events', eventData)
+        const response = await api.post('/api/events', formData)
   
         commit('ADD_EVENT', response.data);
         return response.data;
@@ -61,14 +61,21 @@ export default {
       }
     },
 
-    async updateEvent({ commit }, { id, eventData }) {
+    async updateEvent({ commit }, { id, formData }) {
       try {
-        const response = await api.put(`/api/events/${id}`, eventData)
-  
-        commit('UPDATE_EVENT', response.data);
+        // Converta boolean para string para o FormData
+        formData.set('keep_banner', formData.get('keep_banner') === 'true' ? 'true' : 'false');
+        
+        const response = await api.put(`/api/events/${id}`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+        
+        commit('UPDATE_EVENT', response.data.evento);
         return response.data;
       } catch (error) {
-        throw new Error(error)
+        throw new Error(error.response?.data?.message || error.message);
       }
     },
 

@@ -9,7 +9,7 @@
       <EventForm
         :event="event"
         :loading="loadingSubmit"
-        @submit="handleUpdateEvent"
+        @form-submit="handleUpdateEvent"
         @cancel="handleCancel"
       />
     </template>
@@ -57,19 +57,23 @@ export default {
         this.loadingEvent = false;
       }
     },
-    async handleUpdateEvent(eventData) {
+    async handleUpdateEvent(formData) {
       this.loadingSubmit = true;
+      console.log(formData);
       try {
-        await this.$store.dispatch("events/updateEvent", {
+        const response = await this.$store.dispatch("events/updateEvent", {
           id: this.$route.params.id,
-          eventData: eventData,
+          formData: formData,
         });
-        notifications.success(this.$store, "Evento atualizado com sucesso!");
+
+        notifications.success(this.$store, response.message);
         this.$router.push("/home");
       } catch (error) {
         notifications.error(
           this.$store,
-          error.message || "Erro ao atualizar evento"
+          error.response?.data?.message ||
+            error.message ||
+            "Falha ao criar evento! Tente novamente."
         );
       } finally {
         this.loadingSubmit = false;

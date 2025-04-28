@@ -1,5 +1,14 @@
 <template>
   <div class="event-show-container">
+    <div class="flex">
+      <button
+        type="button"
+        @click="handleCancel"
+        class="btn btn-secondary btn-voltar"
+      >
+        Voltar
+      </button>
+    </div>
     <template v-if="loading">
       <div class="loading-spinner">
         <span>Carregando evento...</span>
@@ -7,18 +16,29 @@
     </template>
     <template v-else-if="event">
       <div class="event-header">
-        <h1>{{ event.title }}</h1>
-        <div v-if="isAdmin" class="event-actions">
-          <button @click="handleEdit" class="btn btn-edit">
-            <i class="fas fa-edit"></i> Editar
-          </button>
-          <button @click="handleDelete" class="btn btn-delete">
-            <i class="fas fa-trash"></i> Excluir
+        <div class="banner-container">
+          <div class="banner">
+            <img
+              :src="event.banner_url"
+              :alt="event.title"
+              class="banner-image"
+            />
+          </div>
+        </div>
+        <div class="description">
+          <h1>{{ event.title }}</h1>
+          <div v-if="isAdmin" class="event-actions">
+            <button @click="handleEdit" class="btn btn-edit">
+              <i class="fas fa-edit"></i> Editar
+            </button>
+            <button @click="handleDelete" class="btn btn-delete">
+              <i class="fas fa-trash"></i> Excluir
+            </button>
+          </div>
+          <button v-else @click="handleLeaveEvent" class="btn btn-leave">
+            <i class="fas fa-sign-out-alt"></i> Sair do Evento
           </button>
         </div>
-        <button v-else @click="handleLeaveEvent" class="btn btn-leave">
-          <i class="fas fa-sign-out-alt"></i> Sair do Evento
-        </button>
       </div>
 
       <div class="event-details">
@@ -163,6 +183,10 @@ export default {
       }
     };
 
+    const handleCancel = () => {
+      router.push("/home");
+    };
+
     return {
       event,
       loading,
@@ -172,6 +196,7 @@ export default {
       handleEdit,
       handleDelete,
       handleLeaveEvent,
+      handleCancel,
       router,
     };
   },
@@ -179,10 +204,14 @@ export default {
 </script>
 
 <style scoped>
+.flex {
+  display: flex;
+}
+
 .event-show-container {
-  max-width: 1200px;
+  max-width: 60%;
   margin: 0 auto;
-  padding: 2rem 1rem;
+  padding: 2rem;
 }
 
 .loading-spinner {
@@ -208,12 +237,65 @@ export default {
 }
 
 .event-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  display: grid;
+  gap: 2rem;
   margin-bottom: 2rem;
   padding-bottom: 1rem;
   border-bottom: 1px solid #eee;
+}
+
+.banner-container {
+  width: 100%;
+  overflow: hidden;
+  border-radius: 1rem;
+}
+
+.banner {
+  position: relative;
+  width: 100%;
+  height: auto;
+  overflow: hidden;
+}
+
+.banner-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+  transition: transform 0.3s ease;
+}
+
+/* Efeito de zoom suave ao passar o mouse */
+.banner:hover .banner-image {
+  transform: scale(1.02);
+}
+
+/* Responsividade */
+@media (max-width: 1024px) {
+  .banner {
+    height: 350px;
+  }
+}
+
+@media (max-width: 768px) {
+  .banner {
+    height: 300px;
+  }
+}
+
+@media (max-width: 480px) {
+  .banner {
+    height: 250px;
+  }
+
+  .banner-container {
+    border-radius: 8px;
+  }
+}
+
+.description {
+  display: flex;
+  justify-content: space-between;
 }
 
 .event-header h1 {
@@ -294,15 +376,13 @@ export default {
 }
 
 .btn {
-  padding: 0.5rem 1rem;
+  padding: 0.75rem 1.5rem;
   border: none;
-  border-radius: 6px;
-  font-size: 0.9rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
+  transition: all 0.3s;
 }
 
 .btn-edit {
@@ -339,6 +419,16 @@ export default {
 
 .btn-secondary:hover {
   background-color: #e0e0e0;
+}
+
+.btn-voltar {
+  background-color: transparent;
+  border-radius: 1rem 1rem 0px 0px;
+}
+
+.btn-voltar:hover {
+  background-color: transparent;
+  text-decoration: underline;
 }
 
 @media (max-width: 768px) {
