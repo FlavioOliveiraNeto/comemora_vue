@@ -61,7 +61,16 @@ export default {
         const estaAutenticado = this.isAuthenticated;
 
         if (estaAutenticado) {
-          this.$router.push("/home");
+          const redirectTo = response || "/home"; // Redirecionamento pós-login
+
+          // Aceitar automaticamente o convite, se presente
+          if (response?.data?.inviteAccepted) {
+            this.$router.push(redirectTo); // Redireciona após o login
+          } else {
+            // Caso haja um convite para ser aceito
+            this.$router.push("/invite/accept");
+          }
+
           notifications.success(this.$store, response.data?.message);
         } else {
           notifications.error(this.$store, "Login falhou! Tente novamente.");

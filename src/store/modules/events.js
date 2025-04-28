@@ -50,6 +50,16 @@ export default {
       }
     },
 
+    async fetchEventDetailsById(_, { eventId, token }) {
+      try {
+        const params = token ? { token } : {};
+        const response = await api.get(`/api/events/${eventId}/event_details`, { params });
+        return response.data;
+      } catch (error) {
+        throw error;
+      }
+    },
+
     async createEvent({ commit }, formData) {
       try {
         const response = await api.post('/api/events', formData)
@@ -86,6 +96,18 @@ export default {
         return { success: true };
       } catch (error) {
         throw error;
+      }
+    },
+
+    async joinEvent({ commit }, { eventId, token }) {
+      try {
+        const response = await api.post(`/api/events/${eventId}/join`, { token });
+        const event = response.data;
+
+        commit('ADD_PARTICIPATING_EVENT', event);
+        return event;
+      } catch (error) {
+        throw new Error("Erro ao aceitar o convite: " + error.response?.data?.message);
       }
     },
 

@@ -6603,6 +6603,11 @@ punycode@^2.1.0, punycode@^2.1.1, punycode@^2.3.1:
   resolved "https://registry.yarnpkg.com/punycode/-/punycode-2.3.1.tgz#027422e2faec0b25e1549c3e1bd8309b9133b6e5"
   integrity sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==
 
+qrcode.vue@^3.6.0:
+  version "3.6.0"
+  resolved "https://registry.yarnpkg.com/qrcode.vue/-/qrcode.vue-3.6.0.tgz#d940fe96712922232aa19892bdd68793e62c73e7"
+  integrity sha512-vQcl2fyHYHMjDO1GguCldJxepq2izQjBkDEEu9NENgfVKP6mv/e2SU62WbqYHGwTgWXLhxZ1NCD1dAZKHQq1fg==
+
 qs@6.13.0:
   version "6.13.0"
   resolved "https://registry.yarnpkg.com/qs/-/qs-6.13.0.tgz#6ca3bd58439f7e245655798997787b0d88a51906"
@@ -8005,7 +8010,14 @@ vue-template-es2015-compiler@^1.9.0:
   resolved "https://registry.yarnpkg.com/vue-template-es2015-compiler/-/vue-template-es2015-compiler-1.9.1.tgz#1ee3bc9a16ecbf5118be334bb15f9c46f82f5825"
   integrity sha512-4gDntzrifFnCEvyoO8PqyJDmguXgVPxKiIxrBKjIowvL9l+N66196+72XVYR8BBf1Uv1Fgt3bGevJ+sEmxfZzw==
 
-vue@^3.2.13:
+vue3-social-sharing@^1.4.1:
+  version "1.4.1"
+  resolved "https://registry.yarnpkg.com/vue3-social-sharing/-/vue3-social-sharing-1.4.1.tgz#f1f379855a51c05cff14682867486a5fff53fe49"
+  integrity sha512-VzH3iSxvszb4628k4ZrGgQOAAXMLX0B+QJJvChdZqaiXNsW5LGoBSr2Xd2sXcGfiSwmVgcerfa+/HLM++Mozng==
+  dependencies:
+    vue "^3.3.11"
+
+vue@^3.2.13, vue@^3.3.11:
   version "3.5.13"
   resolved "https://registry.yarnpkg.com/vue/-/vue-3.5.13.tgz#9f760a1a982b09c0c04a867903fc339c9f29ec0a"
   integrity sha512-wmeiSMxkZCSc+PM2w2VRsOYAZC8GdipNFRTsLSfodVqI9mbejKeXEGr8SckuLnrQPGe3oJN5c3K0vpoU9q/wCQ==

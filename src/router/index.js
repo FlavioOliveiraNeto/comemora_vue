@@ -4,12 +4,12 @@ import store from '@/store'
 import Home from '@/views/Home.vue'
 
 import Auth from '@/views/authentication/Auth.vue'
-
 import ConfirmAccount from '@/views/authentication/ConfirmAccount.vue'
 
 import EventNew from '@/views/events/EventNew.vue'
 import EventEdit from '@/views/events/EventEdit.vue'
 import EventShow from '@/views/events/EventShow.vue'
+import EventJoin from '@/views/events/EventJoin.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -80,6 +80,12 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
     {
+      path: '/events/:id/join',
+      name: 'EventJoin',
+      component: EventJoin,
+      meta: { requiresAuth: false }
+    },
+    {
       path: '/:pathMatch(.*)*',
       redirect: '/auth'
     }
@@ -89,9 +95,9 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   if (to.matched.some(record => record.meta.requiresAuth)) {
     if (!store.getters['auth/isAuthenticated']) {
-      next({ name: 'login' })
+      next({ name: 'login' }) // Redireciona para o login se não estiver autenticado
     } else {
-      next()
+      next() // Permite o acesso à rota
     }
   } else if (to.matched.some(record => record.meta.guest)) {
     if (store.getters['auth/isAuthenticated']) {

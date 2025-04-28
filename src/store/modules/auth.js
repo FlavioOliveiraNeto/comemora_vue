@@ -54,7 +54,10 @@ const actions = {
         localStorage.setItem('user', JSON.stringify(user))
         
         commit('AUTH_SUCCESS', { token, user })
-        return response
+
+        // Verifica se há um parâmetro de redirecionamento após o login
+        const redirectTo = response.data.redirect || '/home';  // Default é '/home'
+        return redirectTo
       }
     } catch (error) {
       commit('AUTH_ERROR')
@@ -81,10 +84,31 @@ const actions = {
       const response = await api.post('/users', {
         user: userData
       })
-      return response.data
+  
+      const token = response.headers['authorization'] || response.data.token
+      const userDataResponse = response.data.user
+  
+      if (token && userDataResponse) {
+        const user = {
+          email: userDataResponse.email,
+          name: userDataResponse.name,
+          role: userDataResponse.role || 'guest'
+        }
+  
+        localStorage.setItem('token', token)
+        localStorage.setItem('user', JSON.stringify(user))
+        
+        commit('AUTH_SUCCESS', { token, user })
+  
+        // Verifica se há um parâmetro de redirecionamento após o registro
+        const redirectTo = response.data.redirect || '/home'; // Default é '/home'
+        return redirectTo
+      }
     } catch (error) {
       commit('AUTH_ERROR')
-      
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+  
       // Tratamento de erro melhorado
       let errorMessage = 'Erro ao registrar'
       if (error.response) {
@@ -94,10 +118,10 @@ const actions = {
           errorMessage = error.response.data.error
         }
       }
-      
+  
       throw new Error(errorMessage)
     }
-  },
+  },  
 
   async forgotPassword({ commit }, email) {
     commit('AUTH_REQUEST')
