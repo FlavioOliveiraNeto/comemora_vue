@@ -21,7 +21,14 @@
       <div class="switch-auth">
         <p>
           Não tem uma conta?
-          <a href="#" @click.prevent="switchToRegister">Cadastre-se</a>
+          <router-link
+            :to="{
+              name: 'register',
+              query: { redirect: $route.query.redirect },
+            }"
+          >
+            Cadastre-se
+          </router-link>
         </p>
       </div>
       <div class="forgot-password">
@@ -58,22 +65,27 @@ export default {
           password: this.password,
         });
 
-        const estaAutenticado = this.isAuthenticated;
+        if (this.isAuthenticated) {
+          const redirectPath = this.$route.query.redirect;
 
-        if (estaAutenticado) {
-          const redirectTo = response || "/home"; // Redirecionamento pós-login
+          if (redirectPath) {
+            const eventId = redirectPath.match(/\/events\/(\d+)\/join/)?.[1];
+            const token = redirectPath.split("token=")[1];
 
-          // Aceitar automaticamente o convite, se presente
-          if (response?.data?.inviteAccepted) {
-            this.$router.push(redirectTo); // Redireciona após o login
+            if (eventId && token) {
+              await this.$store.dispatch("events/joinEvent", {
+                eventId,
+                token,
+              });
+              this.$router.push("/home");
+            } else {
+              this.$router.push(decodeURIComponent(this.$route.query.redirect));
+            }
           } else {
-            // Caso haja um convite para ser aceito
-            this.$router.push("/invite/accept");
+            this.$router.push("/home");
           }
 
           notifications.success(this.$store, response.data?.message);
-        } else {
-          notifications.error(this.$store, "Login falhou! Tente novamente.");
         }
       } catch (error) {
         notifications.error(
@@ -84,8 +96,9 @@ export default {
         this.loading = false;
       }
     },
-    switchToRegister() {
-      this.$emit("switch-to-register");
+    switchToRegister(redirect) {
+      const currentRedirect = this.$route.query.redirect;
+      this.$emit("switch-to-register", currentRedirect || redirect);
     },
   },
 };

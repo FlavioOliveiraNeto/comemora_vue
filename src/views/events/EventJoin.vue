@@ -22,9 +22,7 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from "vue";
-import { useRoute, useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { mapGetters } from "vuex";
 import moment from "moment";
 import notifications from "../../../utils/notifications_helper";
 import EventHeader from "../../components/events/EventHeader.vue";
@@ -39,71 +37,52 @@ export default {
     EventLoading,
     EventNotFound,
   },
-  setup() {
-    const store = useStore();
-    const route = useRoute();
-    const router = useRouter();
-    const event = ref(null);
-    const loading = ref(true);
-    const showShareModal = ref(false);
-    const shareModalRef = ref(null);
+  data() {
+    return {
+      event: null,
+      loading: true,
+    };
+  },
+  computed: {
+    ...mapGetters("auth", ["currentUser"]),
 
-    const currentUser = computed(() => store.getters["auth/currentUser"]);
-    const isAdmin = computed(() => {
-      return currentUser.value
-        ? event.value?.admin?.id === currentUser.value?.id
+    isAdmin() {
+      return this.currentUser
+        ? this.event?.admin?.id === this.currentUser?.id
         : false;
-    });
-
-    const handleJoinEvent = async () => {
+    },
+  },
+  methods: {
+    async handleJoinEvent() {
       try {
-        if (!currentUser.value) {
-          // Se o usuário não estiver logado, redireciona para a tela de login
-          router.push({ name: "login", query: { redirect: route.fullPath } });
+        if (!this.currentUser) {
+          this.$router.push({
+            name: "login",
+            query: { redirect: this.$route.fullPath },
+          });
           return;
         }
 
-        const eventId = route.params.id;
-        const token = route.query.token;
+        const eventId = this.$route.params.id;
+        const token = this.$route.query.token;
 
-        // Chama a ação da store para aceitar o convite
-        await store.dispatch("events/joinEvent", { eventId, token });
-
-        // Após aceitar, redireciona o usuário para a página principal (home)
-        router.push("/home");
+        await this.$store.dispatch("events/joinEvent", { eventId, token });
+        this.$router.push("/home");
       } catch (error) {
-        notifications.error(store, "Erro ao aceitar o convite");
+        notifications.error(this.$store, "Erro ao aceitar o convite");
         console.error("Erro ao aceitar o convite:", error);
       }
-    };
+    },
 
-    onMounted(async () => {
-      try {
-        const eventId = route.params.id;
-        const token = route.query.token;
-
-        const response = await store.dispatch("events/fetchEventDetailsById", {
-          eventId,
-          token,
-        });
-        event.value = response;
-      } catch (error) {
-        notifications.error(store, "Erro ao carregar evento");
-        console.error("Erro ao carregar evento:", error);
-      } finally {
-        loading.value = false;
-      }
-    });
-
-    const formatDate = (dateString) => {
+    formatDate(dateString) {
       return moment(dateString).format("DD/MM/YYYY [às] HH:mm");
-    };
+    },
 
-    const calculateDuration = () => {
-      if (!event.value?.start_date || !event.value?.end_date) return "";
+    calculateDuration() {
+      if (!this.event?.start_date || !this.event?.end_date) return "";
 
-      const start = moment(event.value.start_date);
-      const end = moment(event.value.end_date);
+      const start = moment(this.event.start_date);
+      const end = moment(this.event.end_date);
       const duration = moment.duration(end.diff(start));
 
       const days = duration.days();
@@ -116,17 +95,24 @@ export default {
       if (minutes > 0 || result === "") result += `${minutes} minuto(s)`;
 
       return result.trim();
-    };
+    },
+  },
+  async mounted() {
+    try {
+      const eventId = this.$route.params.id;
+      const token = this.$route.query.token;
 
-    return {
-      event,
-      loading,
-      isAdmin,
-      handleJoinEvent,
-      formatDate,
-      calculateDuration,
-      router,
-    };
+      const response = await this.$store.dispatch(
+        "events/fetchEventDetailsById",
+        { eventId, token }
+      );
+      this.event = response;
+    } catch (error) {
+      notifications.error(this.$store, "Erro ao carregar evento");
+      console.error("Erro ao carregar evento:", error);
+    } finally {
+      this.loading = false;
+    }
   },
 };
 </script>

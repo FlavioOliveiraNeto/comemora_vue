@@ -16,6 +16,9 @@ export default {
     ADD_EVENT(state, event) {
       state.organizedEvents.push(event);
     },
+    ADD_PARTICIPATING_EVENT(state, event) {
+      state.participatingEvents.push(event);
+    },
     UPDATE_EVENT(state, updatedEvent) {
       const index = state.organizedEvents.findIndex(e => e.id === updatedEvent.id);
       if (index !== -1) {

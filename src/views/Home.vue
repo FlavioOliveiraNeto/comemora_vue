@@ -53,7 +53,7 @@ export default {
   },
   methods: {
     ...mapActions("auth", ["logout"]),
-    ...mapActions("events", ["deleteEvent"]),
+    ...mapActions("events", ["deleteEvent", "leaveEvent"]),
 
     async fetchUserData() {
       try {
@@ -79,7 +79,7 @@ export default {
 
     async handleLeaveEvent(eventId) {
       try {
-        await this.$http.delete(`/api/events/${eventId}/leave`);
+        await this.$store.dispatch(`events/leaveEvent`, eventId);
         await this.fetchUserData();
         notifications.success(this.$store, "Você saiu do evento com sucesso");
       } catch (error) {

@@ -1,7 +1,11 @@
 <template>
   <div class="card">
-    <h1>Cadastro</h1>
+    <h1>Registro</h1>
     <form @submit.prevent="handleRegister">
+      <div class="form-group">
+        <label>Nome</label>
+        <input v-model="name" type="text" required class="form-control" />
+      </div>
       <div class="form-group">
         <label>Email</label>
         <input v-model="email" type="email" required class="form-control" />
@@ -16,7 +20,7 @@
         />
       </div>
       <div class="form-group">
-        <label>Confirme a senha</label>
+        <label>Confirme a Senha</label>
         <input
           v-model="passwordConfirmation"
           type="password"
@@ -25,7 +29,7 @@
         />
       </div>
       <button type="submit" class="btn btn-primary" :disabled="loading">
-        {{ loading ? "Carregando..." : "Cadastrar" }}
+        {{ loading ? "Carregando..." : "Registrar" }}
       </button>
       <div class="switch-auth">
         <p>
@@ -38,49 +42,56 @@
 </template>
 
 <script>
-import { mapGetters } from "vuex";
 import notifications from "../../../utils/notifications_helper";
 
 export default {
   data() {
     return {
+      name: "",
       email: "",
       password: "",
       passwordConfirmation: "",
       loading: false,
     };
   },
-  computed: {
-    ...mapGetters("auth", ["isAuthenticated"]),
-  },
   methods: {
     async handleRegister() {
+      if (this.password !== this.passwordConfirmation) {
+        notifications.error(this.$store, "As senhas não coincidem");
+        return;
+      }
+
       this.loading = true;
 
       try {
         const response = await this.$store.dispatch("auth/register", {
+          name: this.name,
           email: this.email,
           password: this.password,
-          passwordConfirmation: this.passwordConfirmation,
+          password_confirmation: this.passwordConfirmation,
         });
-
-        if (response) {
-          notifications.success(this.$store, "Cadastro realizado com sucesso!");
-
-          // Redireciona após o cadastro
-          this.$router.push("/home");
-        }
-      } catch (error) {
-        notifications.error(
+        this.resetForm();
+        this.$router.push({ name: "login" });
+        notifications.success(
           this.$store,
-          error.message || "Erro ao registrar, tente novamente."
+          response.message || "Registro realizado com sucesso!"
         );
+      } catch (error) {
+        const errorMessage =
+          error.response?.data?.error || error.message || "Erro ao registrar";
+        notifications.error(this.$store, errorMessage);
       } finally {
         this.loading = false;
       }
     },
     switchToLogin() {
       this.$emit("switch-to-login");
+    },
+    resetForm() {
+      this.name = "";
+      this.email = "";
+      this.password = "";
+      this.passwordConfirmation = "";
     },
   },
 };
