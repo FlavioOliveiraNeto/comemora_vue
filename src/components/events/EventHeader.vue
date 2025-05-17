@@ -18,7 +18,11 @@
           <i class="fas fa-trash"></i> Excluir
         </button>
       </div>
-      <button v-else @click="$emit('join')" class="btn btn-join">
+      <button
+        v-else-if="!isParticipant"
+        @click="$emit('join')"
+        class="btn btn-join"
+      >
         <i class="fas fa-sign-out-alt"></i> Participar do Evento
       </button>
     </div>
@@ -33,6 +37,10 @@ export default {
       required: true,
     },
     isAdmin: {
+      type: Boolean,
+      default: false,
+    },
+    isParticipant: {
       type: Boolean,
       default: false,
     },

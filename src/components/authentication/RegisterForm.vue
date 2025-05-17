@@ -34,7 +34,14 @@
       <div class="switch-auth">
         <p>
           Já tem uma conta?
-          <a href="#" @click.prevent="switchToLogin">Faça login</a>
+          <router-link
+            :to="{
+              name: 'login',
+              query: { redirect: $route.query.redirect },
+            }"
+          >
+            Cadastre-se
+          </router-link>
         </p>
       </div>
     </form>
@@ -71,7 +78,12 @@ export default {
           password_confirmation: this.passwordConfirmation,
         });
         this.resetForm();
-        this.$router.push({ name: "login" });
+        this.$router.push({
+          name: "login",
+          query: {
+            redirect: this.$route.query.redirect,
+          },
+        });
         notifications.success(
           this.$store,
           response.message || "Registro realizado com sucesso!"
@@ -84,8 +96,9 @@ export default {
         this.loading = false;
       }
     },
-    switchToLogin() {
-      this.$emit("switch-to-login");
+    switchToLogin(redirect) {
+      const currentRedirect = this.$route.query.redirect;
+      this.$emit("switch-to-login", currentRedirect || redirect);
     },
     resetForm() {
       this.name = "";

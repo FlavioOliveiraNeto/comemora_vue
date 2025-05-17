@@ -66,7 +66,9 @@ export default {
         });
 
         if (this.isAuthenticated) {
-          const redirectPath = this.$route.query.redirect;
+          const redirectPath = decodeURIComponent(
+            this.$route.query.redirect || ""
+          );
 
           if (redirectPath) {
             const eventId = redirectPath.match(/\/events\/(\d+)\/join/)?.[1];

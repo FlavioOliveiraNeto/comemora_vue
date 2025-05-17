@@ -26,6 +26,7 @@
       <EventHeader
         :event="event"
         :is-admin="isAdmin"
+        :is-participant="isParticipant"
         @share="showShareModal = true"
         @edit="handleEdit"
         @delete="handleDelete"
@@ -78,7 +79,13 @@ export default {
     const currentUser = computed(() => store.getters["auth/currentUser"]);
 
     const isAdmin = computed(
-      () => event.value?.admin?.id === currentUser.value?.id
+      () => event.value?.admin_id === currentUser.value?.id
+    );
+
+    const isParticipant = computed(() =>
+      event.value?.participants?.some(
+        (participant) => participant.id === currentUser.value?.id
+      )
     );
 
     const inviteLink = computed(() => {
@@ -160,6 +167,7 @@ export default {
       event,
       loading,
       isAdmin,
+      isParticipant,
       showShareModal,
       inviteLink,
       shareModalRef,
