@@ -4,7 +4,8 @@ export default {
   namespaced: true,
   state: {
     organizedEvents: [],
-    participatingEvents: []
+    participatingEvents: [],
+    eventMedia: {} // Objeto para armazenar mídias por evento (key: eventId, value: array de mídias)
   },
   mutations: {
     SET_ORGANIZED_EVENTS(state, events) {
@@ -30,6 +31,30 @@ export default {
     },
     LEAVE_EVENT(state, eventId) {
       state.participatingEvents = state.participatingEvents.filter(e => e.id !== eventId);
+    },
+    // Mutations para manipulação de mídias
+    SET_EVENT_MEDIA(state, { eventId, media }) {
+      state.eventMedia = {
+        ...state.eventMedia,
+        [eventId]: media
+      };
+    },
+    ADD_EVENT_MEDIA(state, { eventId, mediaItem }) {
+      if (!state.eventMedia[eventId]) {
+        state.eventMedia[eventId] = [];
+      }
+      // Garante que não estamos adicionando duplicados
+      if (!state.eventMedia[eventId].some(m => m.id === mediaItem.id)) {
+        state.eventMedia[eventId].unshift(mediaItem); // Adiciona no início
+      }
+    },
+    REMOVE_EVENT_MEDIA(state, { eventId, mediaId }) {
+      if (state.eventMedia[eventId]) {
+        const index = state.eventMedia[eventId].findIndex(m => m.id === mediaId);
+        if (index !== -1) {
+          state.eventMedia[eventId].splice(index, 1);
+        }
+      }
     }
   },
   actions: {
@@ -67,7 +92,7 @@ export default {
       try {
         const response = await api.post('/api/events', formData)
   
-        commit('ADD_EVENT', response.data);
+        commit('ADD_EVENT', response.data.evento);
         return response.data;
       } catch (error) {
         throw new Error(error)
@@ -77,7 +102,9 @@ export default {
     async updateEvent({ commit }, { id, formData }) {
       try {
         // Converta boolean para string para o FormData
-        formData.set('keep_banner', formData.get('keep_banner') === 'true' ? 'true' : 'false');
+        if (!formData.has('keep_banner')) {
+          formData.set('keep_banner', 'false');
+        }
         
         const response = await api.put(`/api/events/${id}`, formData, {
           headers: {
@@ -105,7 +132,7 @@ export default {
     async joinEvent({ commit }, { eventId, token }) {
       try {
         const response = await api.post(`/api/events/${eventId}/join`, { token });
-        const event = response.data;
+        const event = response.data.event;
 
         commit('ADD_PARTICIPATING_EVENT', event);
         return event;
@@ -122,10 +149,52 @@ export default {
       } catch (error) {
         throw error;
       }
-    }
+    },
+
+    async fetchEventMedia({ commit }, eventId) {
+      try {
+        const response = await api.get(`/api/events/${eventId}/media`);
+        commit('SET_EVENT_MEDIA', { eventId, media: response.data });
+        return response.data;
+      } catch (error) {
+        throw error;
+      }
+    },
+
+    async addEventMedia({ commit }, { eventId, media }) {
+      try {
+        const formData = new FormData();
+        formData.append("media[file]", media.file);
+        formData.append("media[type]", media.type);
+
+        const response = await api.post(
+          `/api/events/${eventId}/add_media`,
+          formData,
+          {
+            headers: { "Content-Type": "multipart/form-data" },
+          }
+        );
+
+        commit('ADD_EVENT_MEDIA', { eventId, mediaItem: response.data });
+        return response.data; // Retorna os dados para serem usados no componente
+      } catch (error) {
+        throw error;
+      }
+    },
+
+    async removeEventMedia({ commit }, { eventId, mediaId }) {
+      try {
+        await api.delete(`/api/events/${eventId}/media/${mediaId}`);
+        commit('REMOVE_EVENT_MEDIA', { eventId, mediaId });
+        return { success: true };
+      } catch (error) {
+        throw error;
+      }
+    },
   },
   getters: {
     organizedEvents: state => state.organizedEvents,
-    participatingEvents: state => state.participatingEvents
+    participatingEvents: state => state.participatingEvents,
+    getEventMedia: state => eventId => state.eventMedia[eventId] || []
   }
 };

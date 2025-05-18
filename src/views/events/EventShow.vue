@@ -40,7 +40,12 @@
         :calculate-duration="calculateDuration"
       />
 
-      <EventMedia :media="event.media" :event-title="event.title" />
+      <EventMedia
+        :media="mediaList"
+        :event-title="event.title"
+        @media-captured="handleMediaCaptured"
+        @remove-media="removeMedia"
+      />
     </template>
   </div>
 </template>
@@ -78,6 +83,11 @@ export default {
 
     const currentUser = computed(() => store.getters["auth/currentUser"]);
 
+    const mediaList = computed(() => {
+      const media = store.getters["events/getEventMedia"](event.value?.id);
+      return media || []; // Retorna array vazio se for undefined/null
+    });
+
     const isAdmin = computed(
       () => event.value?.admin_id === currentUser.value?.id
     );
@@ -98,6 +108,7 @@ export default {
         const eventId = route.params.id;
         const response = await store.dispatch("events/fetchEventById", eventId);
         event.value = response;
+        await store.dispatch("events/fetchEventMedia", eventId);
       } catch (error) {
         notifications.error(store, "Erro ao carregar evento");
         console.error("Erro ao carregar evento:", error);
@@ -159,6 +170,39 @@ export default {
       }
     };
 
+    const handleMediaCaptured = async (media) => {
+      try {
+        const result = await store.dispatch("events/addEventMedia", {
+          eventId: event.value.id,
+          media,
+        });
+
+        if (result) {
+          notifications.success(store, "Mídia adicionada com sucesso");
+          // Não precisa chamar fetchEventMedia novamente, pois a mutation já atualizou
+        }
+      } catch (error) {
+        notifications.error(store, "Erro ao adicionar mídia");
+        console.error("Erro ao adicionar mídia:", error);
+      }
+    };
+
+    const removeMedia = async (mediaId) => {
+      if (confirm("Tem certeza que deseja remover esta mídia?")) {
+        try {
+          await store.dispatch("events/removeEventMedia", {
+            eventId: event.value.id,
+            mediaId,
+          });
+          notifications.success(store, "Mídia removida com sucesso");
+          // Não precisa chamar fetchEventMedia novamente, pois a mutation já atualizou
+        } catch (error) {
+          notifications.error(store, "Erro ao remover mídia");
+          console.error("Erro ao remover mídia:", error);
+        }
+      }
+    };
+
     const handleCancel = () => {
       router.push("/home");
     };
@@ -178,6 +222,9 @@ export default {
       handleLeaveEvent,
       handleCancel,
       router,
+      mediaList,
+      handleMediaCaptured,
+      removeMedia,
     };
   },
 };
