@@ -161,14 +161,14 @@ export default {
       }
     },
 
-    async addEventMedia({ commit }, { eventId, media }) {
+    async addEventMedia({ commit }, { eventId, mediaFile, description = '' }) {
       try {
         const formData = new FormData();
-        formData.append("media[file]", media.file);
-        formData.append("media[type]", media.type);
+        formData.append("media[file]", mediaFile);
+        formData.append("media[description]", description);
 
         const response = await api.post(
-          `/api/events/${eventId}/add_media`,
+          `/api/events/${eventId}/media`,
           formData,
           {
             headers: { "Content-Type": "multipart/form-data" },
@@ -176,7 +176,7 @@ export default {
         );
 
         commit('ADD_EVENT_MEDIA', { eventId, mediaItem: response.data });
-        return response.data; // Retorna os dados para serem usados no componente
+        return response.data; 
       } catch (error) {
         throw error;
       }

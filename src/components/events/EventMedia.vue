@@ -1,50 +1,63 @@
 <template>
   <div class="media-feed">
     <div class="media-buttons">
-      <button class="media-button photo-button" @click="captureMedia('photo')">
+      <button
+        class="media-button photo-button"
+        @click="openSourceSelection('photo')"
+      >
         <span class="button-icon">📷</span>
-        <span class="button-text">Tirar Foto</span>
+        <span class="button-text">Adicionar Foto</span>
       </button>
-      <button class="media-button video-button" @click="captureMedia('video')">
+      <button
+        class="media-button video-button"
+        @click="openSourceSelection('video')"
+      >
         <span class="button-icon">🎥</span>
-        <span class="button-text">Gravar Vídeo</span>
+        <span class="button-text">Adicionar Vídeo</span>
       </button>
     </div>
 
     <div class="event-media">
       <h2>Feed</h2>
       <div v-if="media && media.length > 0" class="media-grid">
-        <div
-          v-for="item in media"
-          :key="item.id"
-          class="media-item"
-          :class="{ 'media-item-video': item.type === 'video' }"
-        >
-          <img
-            v-if="item.file_data === 'photo'"
-            :src="item.file_url"
-            :alt="`Mídia do evento ${eventTitle}`"
-            class="media-image"
-            @click="showMediaViewer(item)"
-          />
-          <video
-            v-else-if="item.file_data === 'video'"
-            class="media-video"
-            @click="showMediaViewer(item)"
-          >
-            <source :src="item.file_url" :type="item.mimeType || 'video/mp4'" />
-            Seu navegador não suporta vídeos.
-          </video>
-          <div class="media-overlay">
-            <button class="media-delete" @click.stop="removeMedia(item.id)">
-              <span>×</span>
-            </button>
-            <div class="media-info">
-              <span v-if="item.file_data === 'video'" class="video-indicator"
-                >🎬</span
-              >
-              <span class="media-date">{{ formatDate(item.createdAt) }}</span>
+        <div v-for="item in media" :key="item.id" class="media-item">
+          <div class="media-content-wrapper">
+            <img
+              v-if="item.type === 'photo'"
+              :src="item.file_url"
+              :alt="`Mídia do evento ${eventTitle}`"
+              class="media-image"
+              @click="showMediaViewer(item)"
+            />
+            <video
+              v-else-if="item.type === 'video'"
+              class="media-video"
+              controls
+              @click="showMediaViewer(item)"
+            >
+              <source
+                :src="item.file_url"
+                :type="item.mimeType || 'video/mp4'"
+              />
+              Seu navegador não suporta vídeos.
+            </video>
+            <div class="media-overlay">
+              <button class="media-delete" @click.stop="removeMedia(item.id)">
+                <span>×</span>
+              </button>
+              <div class="media-info">
+                <span v-if="item.type === 'video'" class="video-indicator"
+                  >🎬</span
+                >
+                <span class="media-date">{{ formatDate(item.createdAt) }}</span>
+              </div>
             </div>
+          </div>
+          <div class="media-details">
+            <p class="media-user-name">Por: {{ item.user_name }}</p>
+            <p v-if="item.description" class="media-description">
+              {{ item.description }}
+            </p>
           </div>
         </div>
       </div>
@@ -52,12 +65,30 @@
         <div class="empty-icon">📱</div>
         <p>Nenhuma mídia adicionada ainda</p>
         <p class="empty-subtitle">
-          Tire fotos ou grave vídeos usando os botões acima
+          Adicione fotos ou vídeos usando os botões acima
         </p>
       </div>
     </div>
 
-    <!-- Modal para captura de mídia -->
+    <div v-if="showSourceSelectionModal" class="capture-modal">
+      <div class="capture-container">
+        <div class="capture-header">
+          <h3>Escolha a fonte da mídia</h3>
+          <button class="close-button" @click="closeSourceSelectionModal">
+            ×
+          </button>
+        </div>
+        <div class="source-selection-options">
+          <button @click="selectCamera" class="selection-button camera-option">
+            <span class="button-icon">📸</span> Usar Câmera
+          </button>
+          <button @click="selectUpload" class="selection-button upload-option">
+            <span class="button-icon">📁</span> Fazer Upload
+          </button>
+        </div>
+      </div>
+    </div>
+
     <div v-if="showCaptureModal" class="capture-modal">
       <div class="capture-container">
         <div class="capture-header">
@@ -96,7 +127,62 @@
       </div>
     </div>
 
-    <!-- Visualizador de mídia -->
+    <input
+      type="file"
+      ref="fileInputPhoto"
+      accept="image/*"
+      @change="handleFileUpload"
+      style="display: none"
+    />
+    <input
+      type="file"
+      ref="fileInputVideo"
+      accept="video/*"
+      @change="handleFileUpload"
+      style="display: none"
+    />
+
+    <div v-if="showPreviewModal" class="capture-modal">
+      <div class="capture-container">
+        <div class="capture-header">
+          <h3>Pré-visualização da Mídia</h3>
+          <button class="close-button" @click="closePreviewModal">×</button>
+        </div>
+        <div class="preview-content">
+          <img
+            v-if="previewMediaType === 'photo' && previewMediaUrl"
+            :src="previewMediaUrl"
+            alt="Pré-visualização da Foto"
+            class="preview-media-item"
+          />
+          <video
+            v-else-if="previewMediaType === 'video' && previewMediaUrl"
+            :src="previewMediaUrl"
+            controls
+            autoplay
+            class="preview-media-item"
+          >
+            Seu navegador não suporta vídeos.
+          </video>
+          <div class="media-description-input">
+            <textarea
+              v-model="mediaDescription"
+              placeholder="Adicione uma legenda (opcional)"
+              rows="3"
+            ></textarea>
+          </div>
+          <div class="preview-actions">
+            <button class="action-button add-button" @click="addMediaToFeed">
+              Adicionar
+            </button>
+            <button class="action-button repeat-button" @click="retakeMedia">
+              Repetir
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div v-if="selectedMedia" class="media-viewer">
       <div class="viewer-content">
         <div class="viewer-header">
@@ -104,7 +190,7 @@
         </div>
         <img
           v-if="selectedMedia.type === 'photo'"
-          :src="selectedMedia.url"
+          :src="selectedMedia.file_url"
           :alt="`Mídia do evento ${eventTitle}`"
           class="viewer-image"
         />
@@ -115,7 +201,7 @@
           autoplay
         >
           <source
-            :src="selectedMedia.url"
+            :src="selectedMedia.file_url"
             :type="selectedMedia.mimeType || 'video/mp4'"
           />
           Seu navegador não suporta vídeos.
@@ -147,13 +233,19 @@ export default {
   },
   data() {
     return {
-      showCaptureModal: false,
+      showSourceSelectionModal: false, // Estado para o modal de seleção de fonte (câmera/upload)
+      showCaptureModal: false, // Estado para o modal de captura (câmera)
+      showPreviewModal: false, // NOVO: Estado para o modal de pré-visualização
       captureMode: "photo", // 'photo' ou 'video'
-      selectedMedia: null,
+      selectedMedia: null, // Mídia selecionada para o visualizador (do feed)
       mediaStream: null,
       mediaRecorder: null,
       recordedChunks: [],
       isRecording: false,
+      mediaDescription: "", // Legenda/descrição da mídia
+      previewMediaFile: null, // NOVO: Arquivo de mídia para pré-visualização
+      previewMediaType: "", // NOVO: Tipo da mídia para pré-visualização
+      previewMediaUrl: null, // NOVO: URL para pré-visualização
     };
   },
   methods: {
@@ -167,13 +259,29 @@ export default {
         minute: "2-digit",
       }).format(date);
     },
-    captureMedia(type) {
+    // Abre o modal de seleção de fonte (câmera ou upload)
+    openSourceSelection(type) {
       this.captureMode = type;
+      this.showSourceSelectionModal = true;
+    },
+    // Seleciona a opção de câmera
+    selectCamera() {
+      this.showSourceSelectionModal = false;
       this.showCaptureModal = true;
       this.$nextTick(() => {
         this.initCamera();
       });
     },
+    // Seleciona a opção de upload de arquivo
+    selectUpload() {
+      this.showSourceSelectionModal = false;
+      if (this.captureMode === "photo") {
+        this.$refs.fileInputPhoto.click();
+      } else {
+        this.$refs.fileInputVideo.click();
+      }
+    },
+    // Inicializa o acesso à câmera
     async initCamera() {
       try {
         const constraints = {
@@ -189,12 +297,13 @@ export default {
         }
       } catch (error) {
         console.error("Erro ao acessar câmera:", error);
-        alert(
+        console.error(
           "Não foi possível acessar sua câmera. Verifique as permissões do navegador."
         );
         this.closeCaptureModal();
       }
     },
+    // Tira uma foto da câmera
     takePicture() {
       const canvas = document.createElement("canvas");
       const video = this.$refs.cameraPreview;
@@ -206,16 +315,14 @@ export default {
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
       canvas.toBlob((blob) => {
-        this.$emit("media-captured", {
-          id: Date.now().toString(),
-          type: "photo",
-          file: blob,
-          createdAt: new Date(),
-        });
+        this.previewMediaFile = blob;
+        this.previewMediaType = "photo";
+        this.previewMediaUrl = URL.createObjectURL(blob);
+        this.closeCaptureModal();
+        this.showPreviewModal = true; // Abre o modal de pré-visualização
       }, "image/jpeg");
-
-      this.closeCaptureModal();
     },
+    // Inicia a gravação de vídeo
     startRecording() {
       this.recordedChunks = [];
       this.isRecording = true;
@@ -235,46 +342,95 @@ export default {
           type: "video/webm",
         });
 
-        const videoUrl = URL.createObjectURL(blob);
-
-        this.$emit("media-captured", {
-          id: Date.now().toString(),
-          type: "video",
-          file: blob,
-          mimeType: "video/webm",
-          url: videoUrl,
-          createdAt: new Date(),
-        });
-
+        this.previewMediaFile = blob;
+        this.previewMediaType = "video";
+        this.previewMediaUrl = URL.createObjectURL(blob);
         this.isRecording = false;
         this.closeCaptureModal();
+        this.showPreviewModal = true; // Abre o modal de pré-visualização
       };
 
       this.mediaRecorder.start();
     },
+    // Para a gravação de vídeo
     stopRecording() {
       if (this.mediaRecorder && this.isRecording) {
         this.mediaRecorder.stop();
       }
     },
+    // Lida com o upload de arquivo (foto ou vídeo)
+    handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const fileType = file.type.startsWith("image/") ? "photo" : "video";
+        this.previewMediaFile = file;
+        this.previewMediaType = fileType;
+        this.previewMediaUrl = URL.createObjectURL(file);
+        this.closeCaptureModal();
+        this.showPreviewModal = true; // Abre o modal de pré-visualização
+      }
+      // Limpa o input para que o mesmo arquivo possa ser selecionado novamente
+      event.target.value = null;
+    },
+    // NOVO: Adiciona a mídia ao feed (chamado do modal de pré-visualização)
+    addMediaToFeed() {
+      this.$emit("media-captured", {
+        id: Date.now().toString(), // ID temporário, o backend dará o ID real
+        type: this.previewMediaType,
+        file: this.previewMediaFile,
+        createdAt: new Date(), // Data temporária, o backend dará a data real
+        description: this.mediaDescription,
+      });
+      this.resetPreviewState();
+      this.closePreviewModal();
+    },
+    // NOVO: Permite ao usuário repetir a captura/upload (chamado do modal de pré-visualização)
+    retakeMedia() {
+      this.resetPreviewState();
+      this.closePreviewModal();
+      this.openSourceSelection(this.captureMode); // Reabre o modal de seleção de fonte
+    },
+    // Fecha o modal de seleção de fonte
+    closeSourceSelectionModal() {
+      this.showSourceSelectionModal = false;
+    },
+    // Fecha o modal de captura da câmera
     closeCaptureModal() {
       if (this.isRecording) {
         this.stopRecording();
       }
-
       if (this.mediaStream) {
         this.mediaStream.getTracks().forEach((track) => track.stop());
         this.mediaStream = null;
       }
-
       this.showCaptureModal = false;
+      this.mediaDescription = ""; // Limpa a descrição ao fechar o modal de captura
     },
+    // NOVO: Fecha o modal de pré-visualização e reseta os estados
+    closePreviewModal() {
+      this.showPreviewModal = false;
+      this.resetPreviewState(); // Garante que tudo seja limpo
+    },
+    // NOVO: Reseta todos os estados relacionados à pré-visualização
+    resetPreviewState() {
+      if (this.previewMediaUrl) {
+        URL.revokeObjectURL(this.previewMediaUrl); // Libera a URL temporária
+      }
+      this.previewMediaFile = null;
+      this.previewMediaType = "";
+      this.previewMediaUrl = null;
+      this.mediaDescription = "";
+    },
+    // Abre o visualizador de mídia para itens já no feed
     showMediaViewer(item) {
-      this.selectedMedia = item;
+      // Usar a URL do backend para mídias já enviadas
+      this.selectedMedia = { ...item, url: item.file_url };
     },
+    // Fecha o visualizador de mídia
     closeMediaViewer() {
       this.selectedMedia = null;
     },
+    // Remove uma mídia do feed
     removeMedia(itemId) {
       this.$emit("remove-media", itemId);
     },
@@ -283,6 +439,7 @@ export default {
     if (this.mediaStream) {
       this.mediaStream.getTracks().forEach((track) => track.stop());
     }
+    this.resetPreviewState(); // Limpa URLs temporárias ao sair do componente
   },
 };
 </script>
@@ -347,26 +504,38 @@ export default {
 .media-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 1rem;
+  gap: 1.5rem; /* Aumentado o gap para melhor espaçamento */
 }
 
 .media-item {
-  background: #f5f5f5;
+  background: #ffffff; /* Fundo branco para o cartão */
   border-radius: 12px;
   overflow: hidden;
   cursor: pointer;
-  transition: transform 0.2s ease;
+  transition: all 0.3s ease; /* Transição mais suave */
   position: relative;
-  aspect-ratio: 4/3;
+  display: flex;
+  flex-direction: column; /* Para empilhar conteúdo e detalhes */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); /* Sombra mais suave */
 }
 
 .media-item:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  transform: translateY(-5px); /* Efeito de elevação maior */
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15); /* Sombra mais proeminente no hover */
+}
+
+.media-content-wrapper {
+  position: relative;
+  width: 100%;
+  padding-top: 75%; /* Proporção 4:3 (altura/largura * 100) */
+  overflow: hidden;
 }
 
 .media-image,
 .media-video {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -382,10 +551,10 @@ export default {
   background: linear-gradient(
     to bottom,
     rgba(0, 0, 0, 0.1),
-    rgba(0, 0, 0, 0.4)
+    rgba(0, 0, 0, 0.5) /* Gradiente mais escuro para melhor contraste */
   );
   opacity: 0;
-  transition: opacity 0.2s ease;
+  transition: opacity 0.3s ease; /* Transição mais suave */
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -398,23 +567,25 @@ export default {
 
 .media-delete {
   align-self: flex-end;
-  width: 32px;
-  height: 32px;
+  width: 36px; /* Botão maior */
+  height: 36px; /* Botão maior */
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.9); /* Fundo mais opaco */
   border: none;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 1.25rem;
+  font-size: 1.4rem; /* Ícone maior */
   font-weight: bold;
+  color: #333; /* Cor do ícone */
   transition: all 0.2s ease;
 }
 
 .media-delete:hover {
-  background: rgba(255, 0, 0, 0.8);
+  background: #ff416c; /* Cor de hover mais vibrante */
   color: white;
+  transform: scale(1.1); /* Pequeno zoom no hover */
 }
 
 .media-info {
@@ -422,11 +593,34 @@ export default {
   align-items: center;
   gap: 0.5rem;
   color: white;
-  font-size: 0.85rem;
+  font-size: 0.9rem; /* Fonte ligeiramente maior */
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5); /* Sombra para legibilidade */
 }
 
 .video-indicator {
-  font-size: 1.25rem;
+  font-size: 1.35rem; /* Ícone maior */
+}
+
+.media-details {
+  padding: 1rem;
+  text-align: left;
+  background-color: #ffffff;
+  border-top: 1px solid #f0f0f0; /* Linha sutil separando a mídia dos detalhes */
+}
+
+.media-user-name {
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 0.25rem;
+  font-size: 0.95rem;
+}
+
+.media-description {
+  color: #666;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  margin-top: 0.5rem;
+  word-wrap: break-word; /* Garante quebra de linha para descrições longas */
 }
 
 .empty-state {
@@ -456,7 +650,7 @@ export default {
   color: #999;
 }
 
-/* Estilos para o modal de captura */
+/* Estilos para o modal de captura e seleção */
 .capture-modal {
   position: fixed;
   top: 0;
@@ -503,10 +697,13 @@ export default {
 .capture-preview {
   position: relative;
   width: 100%;
-  aspect-ratio: 4/3;
+  padding-top: 75%; /* Proporção 4:3 */
 }
 
 .capture-preview video {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -583,6 +780,123 @@ export default {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
+/* Estilos para as opções de seleção de fonte */
+.source-selection-options {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 2rem;
+}
+
+.selection-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background-color: #f9f9f9;
+  color: #333;
+}
+
+.selection-button:hover {
+  border-color: #42b983;
+  background-color: #e6ffe6;
+  color: #42b983;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+.selection-button .button-icon {
+  font-size: 1.5rem;
+}
+
+/* Estilos para o campo de descrição no modal de pré-visualização */
+.media-description-input {
+  padding: 1rem;
+  background-color: #f9f9f9;
+  border-top: 1px solid #eee;
+  text-align: center; /* Centraliza o textarea */
+}
+
+.media-description-input textarea {
+  width: calc(100% - 40px); /* Ajuste para padding */
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  resize: vertical; /* Permite redimensionar verticalmente */
+  min-height: 60px;
+  max-height: 150px;
+  box-sizing: border-box; /* Inclui padding e borda na largura */
+}
+
+.media-description-input textarea::placeholder {
+  color: #aaa;
+}
+
+/* Estilos para a pré-visualização no modal */
+.preview-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem;
+}
+
+.preview-media-item {
+  max-width: 100%;
+  max-height: 40vh; /* Altura máxima para a pré-visualização */
+  object-fit: contain; /* Garante que a mídia seja contida sem cortar */
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.preview-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+  justify-content: center;
+  width: 100%;
+}
+
+.action-button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex: 1; /* Ocupa espaço igual */
+  max-width: 150px; /* Limita a largura dos botões */
+}
+
+.add-button {
+  background-color: #42b983;
+  color: white;
+}
+
+.add-button:hover {
+  background-color: #36a473;
+  box-shadow: 0 4px 10px rgba(66, 185, 131, 0.3);
+}
+
+.repeat-button {
+  background-color: #f0f2f5;
+  color: #333;
+  border: 1px solid #ddd;
+}
+
+.repeat-button:hover {
+  background-color: #e0e2e5;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
 @keyframes pulse {
   0% {
     box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7);
@@ -598,6 +912,7 @@ export default {
 @media (max-width: 768px) {
   .media-grid {
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 1rem; /* Ajuste para telas menores */
   }
 
   .capture-button {
@@ -615,6 +930,33 @@ export default {
 
   .button-icon {
     font-size: 1.5rem;
+  }
+
+  .selection-button {
+    font-size: 1rem;
+    padding: 0.8rem 1rem;
+  }
+
+  .media-details {
+    padding: 0.75rem; /* Ajuste de padding para telas menores */
+  }
+
+  .media-user-name {
+    font-size: 0.9rem;
+  }
+
+  .media-description {
+    font-size: 0.8rem;
+  }
+
+  .media-description-input textarea {
+    width: calc(100% - 32px); /* Ajuste para padding em mobile */
+    padding: 8px;
+  }
+
+  .action-button {
+    font-size: 0.9rem;
+    padding: 0.6rem 1rem;
   }
 }
 </style>

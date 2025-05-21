@@ -170,16 +170,16 @@ export default {
       }
     };
 
-    const handleMediaCaptured = async (media) => {
+    const handleMediaCaptured = async (mediaData) => {
       try {
         const result = await store.dispatch("events/addEventMedia", {
           eventId: event.value.id,
-          media,
+          mediaFile: mediaData.file,
+          description: mediaData.description || "",
         });
 
         if (result) {
           notifications.success(store, "Mídia adicionada com sucesso");
-          // Não precisa chamar fetchEventMedia novamente, pois a mutation já atualizou
         }
       } catch (error) {
         notifications.error(store, "Erro ao adicionar mídia");
@@ -195,7 +195,6 @@ export default {
             mediaId,
           });
           notifications.success(store, "Mídia removida com sucesso");
-          // Não precisa chamar fetchEventMedia novamente, pois a mutation já atualizou
         } catch (error) {
           notifications.error(store, "Erro ao remover mídia");
           console.error("Erro ao remover mídia:", error);
