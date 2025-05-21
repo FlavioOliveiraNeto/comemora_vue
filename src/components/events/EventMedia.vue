@@ -25,7 +25,7 @@
             <img
               v-if="item.type === 'photo'"
               :src="item.file_url"
-              :alt="`Mídia do evento ${eventTitle}`"
+              :alt="`Mídia do evento ${event.title}`"
               class="media-image"
               @click="showMediaViewer(item)"
             />
@@ -42,7 +42,14 @@
               Seu navegador não suporta vídeos.
             </video>
             <div class="media-overlay">
-              <button class="media-delete" @click.stop="removeMedia(item.id)">
+              <button
+                v-if="
+                  currentUserId === item.user_id ||
+                  currentUserId === event.admin_id
+                "
+                class="media-delete"
+                @click.stop="removeMedia(item.id)"
+              >
                 <span>×</span>
               </button>
               <div class="media-info">
@@ -191,7 +198,7 @@
         <img
           v-if="selectedMedia.type === 'photo'"
           :src="selectedMedia.file_url"
-          :alt="`Mídia do evento ${eventTitle}`"
+          :alt="`Mídia do evento ${event.title}`"
           class="viewer-image"
         />
         <video
@@ -218,8 +225,12 @@ export default {
       type: Array,
       default: () => [],
     },
-    eventTitle: {
-      type: String,
+    event: {
+      type: Object,
+      required: true,
+    },
+    currentUserId: {
+      type: Number,
       required: true,
     },
   },

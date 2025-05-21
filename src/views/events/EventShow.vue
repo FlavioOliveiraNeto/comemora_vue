@@ -42,7 +42,8 @@
 
       <EventMedia
         :media="mediaList"
-        :event-title="event.title"
+        :event="event"
+        :currentUserId="currentUser.id"
         @media-captured="handleMediaCaptured"
         @remove-media="removeMedia"
       />
@@ -209,6 +210,7 @@ export default {
     return {
       event,
       loading,
+      currentUser,
       isAdmin,
       isParticipant,
       showShareModal,
