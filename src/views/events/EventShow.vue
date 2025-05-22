@@ -45,7 +45,7 @@
         :event="event"
         :currentUserId="currentUser.id"
         @media-captured="handleMediaCaptured"
-        @remove-media="removeMedia"
+        @remove-media="handleMediaRemoved"
       />
     </template>
   </div>
@@ -188,18 +188,16 @@ export default {
       }
     };
 
-    const removeMedia = async (mediaId) => {
-      if (confirm("Tem certeza que deseja remover esta mídia?")) {
-        try {
-          await store.dispatch("events/removeEventMedia", {
-            eventId: event.value.id,
-            mediaId,
-          });
-          notifications.success(store, "Mídia removida com sucesso");
-        } catch (error) {
-          notifications.error(store, "Erro ao remover mídia");
-          console.error("Erro ao remover mídia:", error);
-        }
+    const handleMediaRemoved = async (mediaId) => {
+      try {
+        await store.dispatch("events/removeEventMedia", {
+          eventId: event.value.id,
+          mediaId,
+        });
+        notifications.success(store, "Mídia removida com sucesso");
+      } catch (error) {
+        notifications.error(store, "Erro ao remover mídia");
+        console.error("Erro ao remover mídia:", error);
       }
     };
 
@@ -225,7 +223,7 @@ export default {
       router,
       mediaList,
       handleMediaCaptured,
-      removeMedia,
+      handleMediaRemoved,
     };
   },
 };

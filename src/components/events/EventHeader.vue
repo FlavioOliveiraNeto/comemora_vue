@@ -6,7 +6,10 @@
       </div>
     </div>
     <div class="description">
-      <h1>{{ event.title }}</h1>
+      <div class="event-info">
+        <h1>{{ event.title }}</h1>
+        <p>Criado por: {{ event.admin_name }}</p>
+      </div>
       <div v-if="isAdmin" class="event-actions">
         <button @click="$emit('share')" class="btn btn-share">
           <i class="fas fa-share-alt"></i> Gerar Link
@@ -91,6 +94,17 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.event-info {
+  display: grid;
+  gap: 0.3rem;
+  align-items: center;
+  justify-items: start;
+}
+
+.event-info p {
+  margin: 0;
 }
 
 .event-header h1 {

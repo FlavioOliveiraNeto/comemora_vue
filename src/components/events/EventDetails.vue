@@ -64,6 +64,7 @@ export default {
 }
 
 .detail-card {
+  text-align: left;
   background: white;
   padding: 1.5rem;
   border-radius: 8px;
@@ -71,6 +72,7 @@ export default {
 }
 
 .detail-card h3 {
+  text-align: center;
   margin-top: 0;
   margin-bottom: 1rem;
   color: #42b983;

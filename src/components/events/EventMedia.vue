@@ -20,20 +20,23 @@
     <div class="event-media">
       <h2>Feed</h2>
       <div v-if="media && media.length > 0" class="media-grid">
-        <div v-for="item in media" :key="item.id" class="media-item">
+        <div
+          v-for="item in media"
+          :key="item.id"
+          class="media-item"
+          @click="showMediaViewer(item)"
+        >
           <div class="media-content-wrapper">
             <img
               v-if="item.type === 'photo'"
               :src="item.file_url"
               :alt="`Mídia do evento ${event.title}`"
               class="media-image"
-              @click="showMediaViewer(item)"
             />
             <video
               v-else-if="item.type === 'video'"
               class="media-video"
               controls
-              @click="showMediaViewer(item)"
             >
               <source
                 :src="item.file_url"
@@ -44,11 +47,13 @@
             <div class="media-overlay">
               <button
                 v-if="
-                  currentUserId === item.user_id ||
-                  currentUserId === event.admin_id
+                  (currentUser &&
+                    Number(currentUser.id) === Number(item.user_id)) ||
+                  (currentUser &&
+                    Number(currentUser.id) === Number(event.admin_id))
                 "
                 class="media-delete"
-                @click.stop="removeMedia(item.id)"
+                @click.stop="openDeleteConfirmation(item.id)"
               >
                 <span>×</span>
               </button>
@@ -61,7 +66,7 @@
             </div>
           </div>
           <div class="media-details">
-            <p class="media-user-name">Por: {{ item.user_name }}</p>
+            <p class="media-user-name">Enviado por: {{ item.user_name }}</p>
             <p v-if="item.description" class="media-description">
               {{ item.description }}
             </p>
@@ -190,29 +195,72 @@
       </div>
     </div>
 
-    <div v-if="selectedMedia" class="media-viewer">
-      <div class="viewer-content">
-        <div class="viewer-header">
-          <button class="close-button" @click="closeMediaViewer">×</button>
+    <div v-if="showConfirmDeleteModal" class="capture-modal">
+      <div class="capture-container small-modal">
+        <div class="capture-header">
+          <h3>Confirmar Exclusão</h3>
+          <button class="close-button" @click="cancelDeleteMedia">×</button>
         </div>
-        <img
-          v-if="selectedMedia.type === 'photo'"
-          :src="selectedMedia.file_url"
-          :alt="`Mídia do evento ${event.title}`"
-          class="viewer-image"
-        />
-        <video
-          v-else-if="selectedMedia.type === 'video'"
-          class="viewer-video"
-          controls
-          autoplay
-        >
-          <source
-            :src="selectedMedia.file_url"
-            :type="selectedMedia.mimeType || 'video/mp4'"
+        <div class="modal-body">
+          <p>Tem certeza que deseja excluir esta mídia?</p>
+          <div class="preview-actions">
+            <button
+              class="action-button delete-confirm-button"
+              @click="confirmDeleteMedia"
+            >
+              Sim
+            </button>
+            <button
+              class="action-button repeat-button"
+              @click="cancelDeleteMedia"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="showDetailedViewerModal" class="media-viewer-modal">
+      <div class="detailed-viewer-content">
+        <div class="detailed-viewer-header">
+          <button class="close-button" @click="closeDetailedViewerModal">
+            ×
+          </button>
+        </div>
+        <div class="detailed-media-wrapper">
+          <img
+            v-if="detailedMediaItem.type === 'photo'"
+            :src="detailedMediaItem.file_url"
+            :alt="`Mídia do evento ${eventTitle}`"
+            class="detailed-media-item"
           />
-          Seu navegador não suporta vídeos.
-        </video>
+          <video
+            v-else-if="detailedMediaItem.type === 'video'"
+            :src="detailedMediaItem.file_url"
+            controls
+            autoplay
+            class="detailed-media-item"
+          >
+            Seu navegador não suporta vídeos.
+          </video>
+        </div>
+        <div class="detailed-media-info">
+          <p
+            class="detailed-media-description"
+            v-if="detailedMediaItem.description"
+          >
+            {{ detailedMediaItem.description }}
+          </p>
+          <div class="detailed-media-meta">
+            <span class="detailed-media-user">
+              Por: {{ detailedMediaItem.user_name }}
+            </span>
+            <span class="detailed-media-date">
+              Postado em: {{ formatDate(detailedMediaItem.created_at) }}
+            </span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -226,12 +274,14 @@ export default {
       default: () => [],
     },
     event: {
+      // Prop 'event' adicionada para acessar event.admin_id
       type: Object,
       required: true,
     },
-    currentUserId: {
-      type: Number,
-      required: true,
+    currentUser: {
+      // Prop 'currentUser' para o usuário logado
+      type: Object,
+      default: null,
     },
   },
   watch: {
@@ -244,19 +294,23 @@ export default {
   },
   data() {
     return {
-      showSourceSelectionModal: false, // Estado para o modal de seleção de fonte (câmera/upload)
-      showCaptureModal: false, // Estado para o modal de captura (câmera)
-      showPreviewModal: false, // NOVO: Estado para o modal de pré-visualização
-      captureMode: "photo", // 'photo' ou 'video'
-      selectedMedia: null, // Mídia selecionada para o visualizador (do feed)
+      showSourceSelectionModal: false,
+      showCaptureModal: false,
+      showPreviewModal: false,
+      showConfirmDeleteModal: false,
+      showDetailedViewerModal: false, // NOVO: Estado para o modal de visualização detalhada
+      captureMode: "photo",
+      selectedMedia: null, // Mantido para compatibilidade, mas o novo modal de detalhes é preferencial
       mediaStream: null,
       mediaRecorder: null,
       recordedChunks: [],
       isRecording: false,
-      mediaDescription: "", // Legenda/descrição da mídia
-      previewMediaFile: null, // NOVO: Arquivo de mídia para pré-visualização
-      previewMediaType: "", // NOVO: Tipo da mídia para pré-visualização
-      previewMediaUrl: null, // NOVO: URL para pré-visualização
+      mediaDescription: "",
+      previewMediaFile: null,
+      previewMediaType: "",
+      previewMediaUrl: null,
+      mediaToDeleteId: null,
+      detailedMediaItem: null, // NOVO: Armazena o item de mídia para o visualizador detalhado
     };
   },
   methods: {
@@ -266,16 +320,15 @@ export default {
       return new Intl.DateTimeFormat("pt-BR", {
         day: "2-digit",
         month: "2-digit",
+        year: "numeric",
         hour: "2-digit",
         minute: "2-digit",
       }).format(date);
     },
-    // Abre o modal de seleção de fonte (câmera ou upload)
     openSourceSelection(type) {
       this.captureMode = type;
       this.showSourceSelectionModal = true;
     },
-    // Seleciona a opção de câmera
     selectCamera() {
       this.showSourceSelectionModal = false;
       this.showCaptureModal = true;
@@ -283,7 +336,6 @@ export default {
         this.initCamera();
       });
     },
-    // Seleciona a opção de upload de arquivo
     selectUpload() {
       this.showSourceSelectionModal = false;
       if (this.captureMode === "photo") {
@@ -292,7 +344,6 @@ export default {
         this.$refs.fileInputVideo.click();
       }
     },
-    // Inicializa o acesso à câmera
     async initCamera() {
       try {
         const constraints = {
@@ -314,7 +365,6 @@ export default {
         this.closeCaptureModal();
       }
     },
-    // Tira uma foto da câmera
     takePicture() {
       const canvas = document.createElement("canvas");
       const video = this.$refs.cameraPreview;
@@ -330,10 +380,9 @@ export default {
         this.previewMediaType = "photo";
         this.previewMediaUrl = URL.createObjectURL(blob);
         this.closeCaptureModal();
-        this.showPreviewModal = true; // Abre o modal de pré-visualização
+        this.showPreviewModal = true;
       }, "image/jpeg");
     },
-    // Inicia a gravação de vídeo
     startRecording() {
       this.recordedChunks = [];
       this.isRecording = true;
@@ -358,18 +407,16 @@ export default {
         this.previewMediaUrl = URL.createObjectURL(blob);
         this.isRecording = false;
         this.closeCaptureModal();
-        this.showPreviewModal = true; // Abre o modal de pré-visualização
+        this.showPreviewModal = true;
       };
 
       this.mediaRecorder.start();
     },
-    // Para a gravação de vídeo
     stopRecording() {
       if (this.mediaRecorder && this.isRecording) {
         this.mediaRecorder.stop();
       }
     },
-    // Lida com o upload de arquivo (foto ou vídeo)
     handleFileUpload(event) {
       const file = event.target.files[0];
       if (file) {
@@ -378,34 +425,29 @@ export default {
         this.previewMediaType = fileType;
         this.previewMediaUrl = URL.createObjectURL(file);
         this.closeCaptureModal();
-        this.showPreviewModal = true; // Abre o modal de pré-visualização
+        this.showPreviewModal = true;
       }
-      // Limpa o input para que o mesmo arquivo possa ser selecionado novamente
       event.target.value = null;
     },
-    // NOVO: Adiciona a mídia ao feed (chamado do modal de pré-visualização)
     addMediaToFeed() {
       this.$emit("media-captured", {
-        id: Date.now().toString(), // ID temporário, o backend dará o ID real
+        id: Date.now().toString(),
         type: this.previewMediaType,
         file: this.previewMediaFile,
-        createdAt: new Date(), // Data temporária, o backend dará a data real
+        createdAt: new Date(),
         description: this.mediaDescription,
       });
       this.resetPreviewState();
       this.closePreviewModal();
     },
-    // NOVO: Permite ao usuário repetir a captura/upload (chamado do modal de pré-visualização)
     retakeMedia() {
       this.resetPreviewState();
       this.closePreviewModal();
-      this.openSourceSelection(this.captureMode); // Reabre o modal de seleção de fonte
+      this.openSourceSelection(this.captureMode);
     },
-    // Fecha o modal de seleção de fonte
     closeSourceSelectionModal() {
       this.showSourceSelectionModal = false;
     },
-    // Fecha o modal de captura da câmera
     closeCaptureModal() {
       if (this.isRecording) {
         this.stopRecording();
@@ -415,42 +457,56 @@ export default {
         this.mediaStream = null;
       }
       this.showCaptureModal = false;
-      this.mediaDescription = ""; // Limpa a descrição ao fechar o modal de captura
+      this.mediaDescription = "";
     },
-    // NOVO: Fecha o modal de pré-visualização e reseta os estados
     closePreviewModal() {
       this.showPreviewModal = false;
-      this.resetPreviewState(); // Garante que tudo seja limpo
+      this.resetPreviewState();
     },
-    // NOVO: Reseta todos os estados relacionados à pré-visualização
     resetPreviewState() {
       if (this.previewMediaUrl) {
-        URL.revokeObjectURL(this.previewMediaUrl); // Libera a URL temporária
+        URL.revokeObjectURL(this.previewMediaUrl);
       }
       this.previewMediaFile = null;
       this.previewMediaType = "";
       this.previewMediaUrl = null;
       this.mediaDescription = "";
     },
-    // Abre o visualizador de mídia para itens já no feed
+    // NOVO: Abre o modal de visualização detalhada
     showMediaViewer(item) {
-      // Usar a URL do backend para mídias já enviadas
-      this.selectedMedia = { ...item, url: item.file_url };
+      this.detailedMediaItem = item;
+      this.showDetailedViewerModal = true;
     },
-    // Fecha o visualizador de mídia
+    // NOVO: Fecha o modal de visualização detalhada
+    closeDetailedViewerModal() {
+      this.showDetailedViewerModal = false;
+      this.detailedMediaItem = null;
+    },
+    // Mantido para compatibilidade, mas o clique no card agora abre o modal detalhado
     closeMediaViewer() {
       this.selectedMedia = null;
     },
-    // Remove uma mídia do feed
-    removeMedia(itemId) {
-      this.$emit("remove-media", itemId);
+    openDeleteConfirmation(mediaId) {
+      this.mediaToDeleteId = mediaId;
+      this.showConfirmDeleteModal = true;
+    },
+    confirmDeleteMedia() {
+      if (this.mediaToDeleteId) {
+        this.$emit("remove-media", this.mediaToDeleteId);
+      }
+      this.showConfirmDeleteModal = false;
+      this.mediaToDeleteId = null;
+    },
+    cancelDeleteMedia() {
+      this.showConfirmDeleteModal = false;
+      this.mediaToDeleteId = null;
     },
   },
   beforeUnmount() {
     if (this.mediaStream) {
       this.mediaStream.getTracks().forEach((track) => track.stop());
     }
-    this.resetPreviewState(); // Limpa URLs temporárias ao sair do componente
+    this.resetPreviewState();
   },
 };
 </script>
@@ -514,31 +570,34 @@ export default {
 
 .media-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 1.5rem; /* Aumentado o gap para melhor espaçamento */
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(280px, 1fr)
+  ); /* Aumentado de 240px para 280px */
+  gap: 1.5rem;
 }
 
 .media-item {
-  background: #ffffff; /* Fundo branco para o cartão */
+  background: #ffffff;
   border-radius: 12px;
   overflow: hidden;
   cursor: pointer;
-  transition: all 0.3s ease; /* Transição mais suave */
+  transition: all 0.3s ease;
   position: relative;
   display: flex;
-  flex-direction: column; /* Para empilhar conteúdo e detalhes */
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); /* Sombra mais suave */
+  flex-direction: column;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
 }
 
 .media-item:hover {
-  transform: translateY(-5px); /* Efeito de elevação maior */
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15); /* Sombra mais proeminente no hover */
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
 .media-content-wrapper {
   position: relative;
   width: 100%;
-  padding-top: 75%; /* Proporção 4:3 (altura/largura * 100) */
+  padding-top: 75%;
   overflow: hidden;
 }
 
@@ -562,10 +621,10 @@ export default {
   background: linear-gradient(
     to bottom,
     rgba(0, 0, 0, 0.1),
-    rgba(0, 0, 0, 0.5) /* Gradiente mais escuro para melhor contraste */
+    rgba(0, 0, 0, 0.5)
   );
   opacity: 0;
-  transition: opacity 0.3s ease; /* Transição mais suave */
+  transition: opacity 0.3s ease;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -578,25 +637,25 @@ export default {
 
 .media-delete {
   align-self: flex-end;
-  width: 36px; /* Botão maior */
-  height: 36px; /* Botão maior */
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.9); /* Fundo mais opaco */
+  background: rgba(255, 255, 255, 0.9);
   border: none;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 1.4rem; /* Ícone maior */
+  font-size: 1.4rem;
   font-weight: bold;
-  color: #333; /* Cor do ícone */
+  color: #333;
   transition: all 0.2s ease;
 }
 
 .media-delete:hover {
-  background: #ff416c; /* Cor de hover mais vibrante */
+  background: #ff416c;
   color: white;
-  transform: scale(1.1); /* Pequeno zoom no hover */
+  transform: scale(1.1);
 }
 
 .media-info {
@@ -604,19 +663,19 @@ export default {
   align-items: center;
   gap: 0.5rem;
   color: white;
-  font-size: 0.9rem; /* Fonte ligeiramente maior */
-  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5); /* Sombra para legibilidade */
+  font-size: 0.9rem;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .video-indicator {
-  font-size: 1.35rem; /* Ícone maior */
+  font-size: 1.35rem;
 }
 
 .media-details {
   padding: 1rem;
   text-align: left;
   background-color: #ffffff;
-  border-top: 1px solid #f0f0f0; /* Linha sutil separando a mídia dos detalhes */
+  border-top: 1px solid #f0f0f0;
 }
 
 .media-user-name {
@@ -631,7 +690,7 @@ export default {
   font-size: 0.85rem;
   line-height: 1.4;
   margin-top: 0.5rem;
-  word-wrap: break-word; /* Garante quebra de linha para descrições longas */
+  word-wrap: break-word;
 }
 
 .empty-state {
@@ -661,8 +720,9 @@ export default {
   color: #999;
 }
 
-/* Estilos para o modal de captura e seleção */
-.capture-modal {
+/* Estilos para os modais (geral) */
+.capture-modal,
+.media-viewer-modal {
   position: fixed;
   top: 0;
   left: 0;
@@ -675,7 +735,8 @@ export default {
   z-index: 1000;
 }
 
-.capture-container {
+.capture-container,
+.detailed-viewer-content {
   width: 90%;
   max-width: 600px;
   background: white;
@@ -684,7 +745,12 @@ export default {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
-.capture-header {
+.capture-container.small-modal {
+  max-width: 400px;
+}
+
+.capture-header,
+.detailed-viewer-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -692,7 +758,8 @@ export default {
   border-bottom: 1px solid #eee;
 }
 
-.capture-header h3 {
+.capture-header h3,
+.detailed-viewer-header h3 {
   margin: 0;
   font-weight: 600;
 }
@@ -708,7 +775,7 @@ export default {
 .capture-preview {
   position: relative;
   width: 100%;
-  padding-top: 75%; /* Proporção 4:3 */
+  padding-top: 75%;
 }
 
 .capture-preview video {
@@ -755,42 +822,6 @@ export default {
   font-size: 1.75rem;
 }
 
-/* Estilos para o visualizador de mídia */
-.media-viewer {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.9);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.viewer-content {
-  position: relative;
-  width: 90%;
-  max-width: 1000px;
-  max-height: 90vh;
-}
-
-.viewer-header {
-  position: absolute;
-  top: -40px;
-  right: 0;
-}
-
-.viewer-image,
-.viewer-video {
-  max-width: 100%;
-  max-height: 80vh;
-  display: block;
-  margin: 0 auto;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-}
-
 /* Estilos para as opções de seleção de fonte */
 .source-selection-options {
   display: flex;
@@ -832,19 +863,19 @@ export default {
   padding: 1rem;
   background-color: #f9f9f9;
   border-top: 1px solid #eee;
-  text-align: center; /* Centraliza o textarea */
+  text-align: center;
 }
 
 .media-description-input textarea {
-  width: calc(100% - 40px); /* Ajuste para padding */
+  width: calc(100% - 40px);
   padding: 10px;
   border: 1px solid #ddd;
   border-radius: 8px;
   font-size: 0.9rem;
-  resize: vertical; /* Permite redimensionar verticalmente */
+  resize: vertical;
   min-height: 60px;
   max-height: 150px;
-  box-sizing: border-box; /* Inclui padding e borda na largura */
+  box-sizing: border-box;
 }
 
 .media-description-input textarea::placeholder {
@@ -861,8 +892,8 @@ export default {
 
 .preview-media-item {
   max-width: 100%;
-  max-height: 40vh; /* Altura máxima para a pré-visualização */
-  object-fit: contain; /* Garante que a mídia seja contida sem cortar */
+  max-height: 40vh;
+  object-fit: contain;
   border-radius: 8px;
   margin-bottom: 1rem;
 }
@@ -883,8 +914,8 @@ export default {
   font-size: 1rem;
   cursor: pointer;
   transition: all 0.2s ease;
-  flex: 1; /* Ocupa espaço igual */
-  max-width: 150px; /* Limita a largura dos botões */
+  flex: 1;
+  max-width: 150px;
 }
 
 .add-button {
@@ -908,6 +939,100 @@ export default {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
 }
 
+/* Estilos para o corpo do modal de confirmação */
+.modal-body {
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.modal-body p {
+  font-size: 1.1rem;
+  color: #333;
+  margin-bottom: 1.5rem;
+}
+
+.delete-confirm-button {
+  background-color: #ff416c;
+  color: white;
+}
+
+.delete-confirm-button:hover {
+  background-color: #e0325c;
+  box-shadow: 0 4px 10px rgba(255, 65, 108, 0.3);
+}
+
+/* NOVO: Estilos para o Modal de Visualização Detalhada */
+.media-viewer-modal {
+  /* Usa as mesmas propriedades de posicionamento e overlay dos outros modais */
+}
+
+.detailed-viewer-content {
+  max-width: 900px;
+  max-height: 90vh;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+}
+
+.detailed-viewer-header {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #eee;
+  background-color: #f8f8f8;
+}
+
+.detailed-media-wrapper {
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background-color: #000;
+}
+
+.detailed-media-item {
+  max-width: 100%;
+  max-height: 65vh;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.detailed-media-info {
+  padding: 1rem 1.5rem;
+  background-color: #ffffff;
+  border-top: 1px solid #f0f0f0;
+}
+
+.detailed-media-description {
+  font-size: 1rem;
+  color: #333;
+  margin-bottom: 0.75rem;
+  line-height: 1.5;
+  word-wrap: break-word;
+}
+
+.detailed-media-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  color: #777;
+  border-top: 1px solid #eee;
+  padding-top: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.detailed-media-user {
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.detailed-media-date {
+  font-style: italic;
+}
+
 @keyframes pulse {
   0% {
     box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7);
@@ -923,7 +1048,7 @@ export default {
 @media (max-width: 768px) {
   .media-grid {
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 1rem; /* Ajuste para telas menores */
+    gap: 1rem;
   }
 
   .capture-button {
@@ -949,7 +1074,7 @@ export default {
   }
 
   .media-details {
-    padding: 0.75rem; /* Ajuste de padding para telas menores */
+    padding: 0.75rem;
   }
 
   .media-user-name {
@@ -961,13 +1086,42 @@ export default {
   }
 
   .media-description-input textarea {
-    width: calc(100% - 32px); /* Ajuste para padding em mobile */
+    width: calc(100% - 32px);
     padding: 8px;
   }
 
   .action-button {
     font-size: 0.9rem;
     padding: 0.6rem 1rem;
+  }
+
+  .modal-body p {
+    font-size: 1rem;
+  }
+
+  /* Ajustes para o modal de visualização detalhada em mobile */
+  .detailed-viewer-content {
+    max-width: 95%;
+    max-height: 95vh;
+  }
+
+  .detailed-media-item {
+    max-height: 55vh;
+  }
+
+  .detailed-media-info {
+    padding: 1rem;
+  }
+
+  .detailed-media-description {
+    font-size: 0.9rem;
+  }
+
+  .detailed-media-meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    font-size: 0.8rem;
   }
 }
 </style>
