@@ -9,7 +9,8 @@ const api = axios.create({
 api.interceptors.request.use(config => {
   const token = localStorage.getItem('token')
   if (token) {
-    config.headers['Authorization'] = `Bearer ${token}`
+    const cleanedToken = token.startsWith('Bearer ') ? token.substring(7) : token;
+    config.headers['Authorization'] = `Bearer ${cleanedToken}`
   }
   return config
 }, error => {
