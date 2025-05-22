@@ -47,10 +47,9 @@
             <div class="media-overlay">
               <button
                 v-if="
-                  (currentUser &&
-                    Number(currentUser.id) === Number(item.user_id)) ||
-                  (currentUser &&
-                    Number(currentUser.id) === Number(event.admin_id))
+                  currentUserId &&
+                  (currentUserId == item.user_id ||
+                    currentUserId == event.admin_id)
                 "
                 class="media-delete"
                 @click.stop="openDeleteConfirmation(item.id)"
@@ -274,13 +273,11 @@ export default {
       default: () => [],
     },
     event: {
-      // Prop 'event' adicionada para acessar event.admin_id
       type: Object,
       required: true,
     },
-    currentUser: {
-      // Prop 'currentUser' para o usuário logado
-      type: Object,
+    currentUserId: {
+      type: Number,
       default: null,
     },
   },
