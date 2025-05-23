@@ -107,16 +107,21 @@ src/
 
 ## Configuração
 
-* `package.json`:  Define as dependências e scripts do projeto. Para instalar as dependências, execute `npm install` ou `yarn install`. Os scripts incluem `serve` para executar o servidor de desenvolvimento, `build` para construir a aplicação para produção e `test:unit` para executar testes unitários.
+* `package.json`:  Define as dependências e scripts do projeto.
 * `jsconfig.json`:  Configura as definições de linguagem JavaScript para o editor, incluindo aliases de caminho (`@/*` para `src/*`).
 
 ## Instalação
 
 1.  **Clone o repositório.**
-2.  **Instale as dependências:** `npm install` ou `yarn install`
+2.  **Instale as dependências:** 
+```text
+`yarn install`
+```
 3.  **Configure a URL da API:** Defina a variável de ambiente `VUE_APP_API_URL` no seu arquivo `.env` ou diretamente em `src/services/axiosConfig.js`. A URL padrão é `http://localhost:3000`.
-4.  **Execute o servidor de desenvolvimento:** `npm run serve` ou `yarn serve`
-5.  **Construa para produção:** `npm run build` ou `yarn build`
+4.  **Execute o servidor de desenvolvimento:** 
+```text
+`yarn serve`
+```
 
 ## Notas
 
