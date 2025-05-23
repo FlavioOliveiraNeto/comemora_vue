@@ -45,15 +45,14 @@ Comemora é um aplicativo web construído com Vue.js para gerenciar e organizar 
 
 O código fonte do projeto está organizado da seguinte forma:
 
-Claro! Aqui está a estrutura formatada de forma apropriada para ser incluída em um `README.md` no GitHub, usando markdown com comentários e destaque para facilitar a leitura:
-
+```text
 src/
 ├── assets/
 │   └── stylesheets/
 │       ├── application.css      # CSS principal, importa auth.css
 │       └── auth.css             # CSS para componentes de autenticação
 ├── components/
-│   └── authentication/          # Componentes relacionados à autenticação
+│   └── authentication/          # Componentes de autenticação
 │       ├── LoginForm.vue
 │       ├── PasswordForgot.vue
 │       ├── PasswordReset.vue
@@ -61,12 +60,12 @@ src/
 ├── router/
 │   └── index.js                 # Configuração do Vue Router
 ├── services/
-│   └── axiosConfig.js           # Configuração do Axios com URL base e interceptadores
+│   └── axiosConfig.js           # Configuração do Axios e interceptadores
 ├── store/
-│   ├── index.js                 # Inicialização do Vuex store
-│   └── modules/                 # Módulos do Vuex
+│   ├── index.js                 # Inicialização do Vuex
+│   └── modules/
 │       ├── auth.js              # Estado e lógica de autenticação
-│       ├── events.js            # Estado e lógica de gerenciamento de eventos
+│       ├── events.js            # Estado e lógica de eventos
 │       └── notifications.js     # Gerenciamento de notificações
 ├── views/
 │   ├── authentication/          # Views de autenticação
@@ -76,12 +75,13 @@ src/
 │   ├── events/                  # Views de eventos
 │       ├── EventEdit.vue
 │       ├── EventJoin.vue
-│       ├── EventNew\.vue
-│       └── EventShow\.vue
-│   └── Home.vue                 # Home view
+│       ├── EventNew.vue
+│       └── EventShow.vue
+│   └── Home.vue                 # View da página inicial
 ├── App.vue                      # Componente principal da aplicação
 ├── main.js                      # Ponto de entrada da aplicação
 └── registerServiceWorker.js     # Registro do service worker
+```
 
 ## Principais Componentes e Funcionalidades
 
