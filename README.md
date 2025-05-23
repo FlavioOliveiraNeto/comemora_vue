@@ -115,12 +115,12 @@ src/
 1.  **Clone o repositório.**
 2.  **Instale as dependências:** 
 ```text
-`yarn install`
+yarn install
 ```
 3.  **Configure a URL da API:** Defina a variável de ambiente `VUE_APP_API_URL` no seu arquivo `.env` ou diretamente em `src/services/axiosConfig.js`. A URL padrão é `http://localhost:3000`.
 4.  **Execute o servidor de desenvolvimento:** 
 ```text
-`yarn serve`
+yarn serve
 ```
 
 ## Notas
