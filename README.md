@@ -45,41 +45,43 @@ Comemora é um aplicativo web construído com Vue.js para gerenciar e organizar 
 
 O código fonte do projeto está organizado da seguinte forma:
 
+Claro! Aqui está a estrutura formatada de forma apropriada para ser incluída em um `README.md` no GitHub, usando markdown com comentários e destaque para facilitar a leitura:
+
 src/
 ├── assets/
 │   └── stylesheets/
-│       ├── application.css  // CSS principal, importa auth.css
-│       └── auth.css         // CSS para componentes de autenticação
+│       ├── application.css      # CSS principal, importa auth.css
+│       └── auth.css             # CSS para componentes de autenticação
 ├── components/
-│   └── authentication/    // Componentes relacionados à autenticação
+│   └── authentication/          # Componentes relacionados à autenticação
 │       ├── LoginForm.vue
 │       ├── PasswordForgot.vue
 │       ├── PasswordReset.vue
 │       └── RegisterForm.vue
 ├── router/
-│   └── index.js           // Configuração do Vue Router
+│   └── index.js                 # Configuração do Vue Router
 ├── services/
-│   └── axiosConfig.js     // Configuração do Axios com URL base e interceptadores
+│   └── axiosConfig.js           # Configuração do Axios com URL base e interceptadores
 ├── store/
-│   ├── index.js           // Inicialização do Vuex store
-│   └── modules/         // Módulos do Vuex
-│       ├── auth.js        // Estado e lógica de autenticação
-│       ├── events.js      // Estado e lógica de gerenciamento de eventos
-│       ├── notifications.js // Gerenciamento de notificações
+│   ├── index.js                 # Inicialização do Vuex store
+│   └── modules/                 # Módulos do Vuex
+│       ├── auth.js              # Estado e lógica de autenticação
+│       ├── events.js            # Estado e lógica de gerenciamento de eventos
+│       └── notifications.js     # Gerenciamento de notificações
 ├── views/
-│   ├── authentication/    // Views de autenticação
+│   ├── authentication/          # Views de autenticação
 │       ├── Auth.vue
 │       ├── ConfirmAccount.vue
 │       └── Password.vue
-│   ├── events/            // Views de eventos
+│   ├── events/                  # Views de eventos
 │       ├── EventEdit.vue
 │       ├── EventJoin.vue
-│       ├── EventNew.vue
-│       └── EventShow.vue
-│   └── Home.vue           // Home view
-├── App.vue                // Componente principal da aplicação
-├── main.js                // Ponto de entrada da aplicação
-└── registerServiceWorker.js // Registro do service worker
+│       ├── EventNew\.vue
+│       └── EventShow\.vue
+│   └── Home.vue                 # Home view
+├── App.vue                      # Componente principal da aplicação
+├── main.js                      # Ponto de entrada da aplicação
+└── registerServiceWorker.js     # Registro do service worker
 
 ## Principais Componentes e Funcionalidades
 
