@@ -79,9 +79,12 @@ export default {
 }
 
 .banner-image {
+  max-width: 30rem;
   width: 100%;
-  height: 100%;
+  height: auto;
+  -o-object-fit: cover;
   object-fit: cover;
+  -o-object-position: center center;
   object-position: center center;
   transition: transform 0.3s ease;
 }

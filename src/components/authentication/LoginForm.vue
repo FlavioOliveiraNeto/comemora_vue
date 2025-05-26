@@ -36,6 +36,11 @@
           >Esqueceu sua senha?</router-link
         >
       </div>
+      <div v-if="showResendConfirmation" class="resend-confirmation">
+        <button @click="resendConfirmationEmail" :disabled="resending">
+          {{ resending ? "Enviando..." : "Reenviar e-mail de confirmação" }}
+        </button>
+      </div>
     </form>
   </div>
 </template>
@@ -50,6 +55,8 @@ export default {
       email: "",
       password: "",
       loading: false,
+      showResendConfirmation: false,
+      resending: false,
     };
   },
   computed: {
@@ -58,6 +65,7 @@ export default {
   methods: {
     async handleLogin() {
       this.loading = true;
+      this.showResendConfirmation = false;
 
       try {
         const response = await this.$store.dispatch("auth/login", {
@@ -94,8 +102,35 @@ export default {
           this.$store,
           error.message || "Credenciais inválidas"
         );
+
+        if (error.message && error.message.includes("confirmar sua conta")) {
+          this.showResendConfirmation = true;
+        }
       } finally {
         this.loading = false;
+      }
+    },
+    async resendConfirmationEmail() {
+      this.resending = true;
+      try {
+        const response = await this.$store.dispatch(
+          "auth/resendConfirmationEmail",
+          {
+            email: this.email,
+          }
+        );
+        notifications.success(
+          this.$store,
+          response.data?.message ||
+            "E-mail de confirmação reenviado com sucesso. Verifique sua caixa de entrada."
+        );
+      } catch (error) {
+        notifications.error(
+          this.$store,
+          error.message || "Erro ao reenviar e-mail de confirmação."
+        );
+      } finally {
+        this.resending = false;
       }
     },
     switchToRegister(redirect) {
@@ -106,4 +141,28 @@ export default {
 };
 </script>
 
-<style scoped></style>
+<style scoped>
+.resend-confirmation {
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.resend-confirmation button {
+  background: none;
+  border: none;
+  color: #007bff;
+  cursor: pointer;
+  padding: 0;
+  font-size: 0.9rem;
+}
+
+.resend-confirmation button:hover {
+  text-decoration: underline;
+}
+
+.resend-confirmation button:disabled {
+  color: #ccc;
+  cursor: not-allowed;
+  text-decoration: none;
+}
+</style>

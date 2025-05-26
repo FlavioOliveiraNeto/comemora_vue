@@ -39,7 +39,7 @@ const actions = {
       const response = await api.post('/users/sign_in', {
         user: credentials
       })
-      
+
       const token = response.headers['authorization'] || response.data.token
       const userData = response.data.user
 
@@ -53,7 +53,7 @@ const actions = {
 
         localStorage.setItem('token', token)
         localStorage.setItem('user', JSON.stringify(user))
-        
+
         commit('AUTH_SUCCESS', { token, user })
         return response
       }
@@ -61,8 +61,7 @@ const actions = {
       commit('AUTH_ERROR')
       localStorage.removeItem('token')
       localStorage.removeItem('user')
-      
-      // Tratamento de erro melhorado
+
       let errorMessage = ''
       if (error.response) {
         if (error.response.data) {
@@ -71,11 +70,11 @@ const actions = {
           errorMessage = error.response.data.error
         }
       }
-      
+
       throw new Error(errorMessage)
     }
   },
-  
+
   async register({ commit }, userData) {
     commit('AUTH_REQUEST')
     try {
@@ -85,8 +84,7 @@ const actions = {
       return response.data
     } catch (error) {
       commit('AUTH_ERROR')
-      
-      // Tratamento de erro melhorado
+
       let errorMessage = 'Erro ao registrar'
       if (error.response) {
         if (error.response.data.errors) {
@@ -95,7 +93,7 @@ const actions = {
           errorMessage = error.response.data.error
         }
       }
-      
+
       throw new Error(errorMessage)
     }
   },
@@ -112,7 +110,7 @@ const actions = {
       throw error
     }
   },
-  
+
   async resetPassword({ commit }, { token, password, passwordConfirmation }) {
     commit('AUTH_REQUEST')
     try {
@@ -129,29 +127,42 @@ const actions = {
       throw error
     }
   },
-  
+
   async logout({ commit }) {
     try {
-      // Limpa os dados locais primeiro
       localStorage.removeItem('token')
       localStorage.removeItem('user')
       commit('LOGOUT')
 
-      // Tenta fazer logout no backend
       await api.delete('/users/sign_out')
-      
+
       return { success: true }
     } catch (error) {
-      // Mesmo se o logout no backend falhar, limpa o frontend
       commit('LOGOUT')
-      
-      // Tratamento de erro melhorado
+
       let errorMessage = 'Logout concluído (erro na comunicação com o servidor)'
       if (error.response) {
         errorMessage = error.response.data?.error || errorMessage
       }
-      
+
       return { success: false, message: errorMessage }
+    }
+  },
+
+  async resendConfirmationEmail({ commit }, { email }) {
+    commit('AUTH_REQUEST')
+    try {
+      const response = await api.post('/users/confirmation', {
+        user: { email }
+      })
+      return response.data
+    } catch (error) {
+      commit('AUTH_ERROR')
+      let errorMessage = 'Erro ao reenviar e-mail de confirmação'
+      if (error.response) {
+        errorMessage = error.response.data?.error || errorMessage
+      }
+      throw new Error(errorMessage)
     }
   }
 }

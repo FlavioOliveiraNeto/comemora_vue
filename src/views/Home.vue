@@ -3,10 +3,12 @@
     <header class="user-info">
       <h1>Bem-vindo(a), {{ user.name }}!</h1>
       <p>Seu email: {{ user.email }}</p>
-      <button @click="handleLogout" class="logout-btn">Sair</button>
-      <button @click="goToCreateEvent" class="create-event-btn">
-        Criar Evento
-      </button>
+      <div class="user-actions">
+        <button @click="handleLogout" class="logout-btn">Sair</button>
+        <button @click="goToCreateEvent" class="create-event-btn">
+          Criar Evento
+        </button>
+      </div>
     </header>
 
     <section class="events-section">
@@ -129,24 +131,36 @@ export default {
 
 <style scoped>
 .home-container {
-  max-width: 90vw;
-  margin: 0 auto;
-  padding: 20px;
+  padding: 15px;
 }
 
 .user-info {
-  margin-bottom: 30px;
-  padding: 20px;
+  margin-bottom: 20px;
+  padding: 15px;
   background: #f5f5f5;
   border-radius: 8px;
+  text-align: center; /* Centralizar informações no mobile */
 }
 
-.events-section {
+.user-info h1 {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.user-info p {
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.user-actions {
   display: flex;
-  gap: 20px;
+  gap: 10px;
 }
 
-button {
+.logout-btn,
+.create-event-btn {
+  font-size: 1rem;
+  width: 50%;
   padding: 8px 15px;
   border: none;
   border-radius: 4px;
@@ -162,6 +176,45 @@ button {
 .create-event-btn {
   background: #4285f4;
   color: white;
-  margin-left: 10px;
+}
+
+.logout-btn {
+  background: #ff4444;
+  color: white;
+}
+
+.events-section {
+  display: flex;
+  flex-direction: column; /* Empilhar seções de eventos no mobile */
+  gap: 20px;
+}
+
+/* Estilos para telas maiores (tablets e desktops) */
+@media (min-width: 768px) {
+  .home-container {
+    max-width: 90vw;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
+  .user-info {
+    text-align: left; /* Alinhar à esquerda em telas maiores */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .user-actions {
+    flex-direction: row; /* Botões lado a lado em telas maiores */
+    margin-left: auto;
+  }
+
+  .create-event-btn {
+    margin-left: 10px;
+  }
+
+  .events-section {
+    flex-direction: row; /* Seções lado a lado em telas maiores */
+  }
 }
 </style>

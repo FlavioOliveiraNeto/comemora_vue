@@ -7,6 +7,12 @@
     max-width: 400px;
 }
 
+@media screen and (max-width: 425px) {
+    .card {
+        max-width: calc(100% - 5rem);
+    }
+}
+
 .form-group {
     margin-bottom: 1rem;
 }

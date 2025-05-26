@@ -204,6 +204,12 @@ export default {
   gap: 10px;
   margin-top: 15px;
   flex-wrap: wrap;
+  justify-content: space-around;
+}
+
+.social-buttons i:hover {
+  cursor: pointer;
+  text-decoration: underline;
 }
 
 .social-btn {
