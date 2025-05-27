@@ -11,11 +11,26 @@
         <p>Criado por: {{ event.admin_name }}</p>
       </div>
       <div v-if="isAdmin" class="event-actions">
-        <button @click="$emit('share')" class="btn btn-share">
+        <button
+          v-if="event.status !== 'finished'"
+          @click="$emit('share')"
+          class="btn btn-share"
+        >
           <i class="fas fa-share-alt"></i> Gerar Link
         </button>
-        <button @click="$emit('edit')" class="btn btn-edit">
+        <button
+          v-if="event.status !== 'finished'"
+          @click="$emit('edit')"
+          class="btn btn-edit"
+        >
           <i class="fas fa-edit"></i> Editar
+        </button>
+        <button
+          v-if="event.status == 'finished'"
+          @click="$emit('create-album')"
+          class="btn btn-create-album"
+        >
+          <i class="fas fa-create-album-alt"></i> Criar álbum do evento
         </button>
         <button @click="$emit('delete')" class="btn btn-delete">
           <i class="fas fa-trash"></i> Excluir
@@ -27,6 +42,13 @@
         class="btn btn-join"
       >
         <i class="fas fa-sign-out-alt"></i> Participar do Evento
+      </button>
+      <button
+        v-if="event.status == 'finished' && isParticipant"
+        @click="$emit('create-album')"
+        class="btn btn-create-album"
+      >
+        <i class="fas fa-create-album-alt"></i> Criar álbum do evento
       </button>
     </div>
   </div>
@@ -52,7 +74,7 @@ export default {
       required: true,
     },
   },
-  emits: ["share", "edit", "delete", "join"],
+  emits: ["share", "edit", "delete", "join", "create-album"],
 };
 </script>
 
@@ -79,11 +101,12 @@ export default {
 }
 
 .banner-image {
-  max-width: 30rem;
+  max-width: 1440px;
   width: 100%;
   height: auto;
-  -o-object-fit: cover;
-  object-fit: cover;
+  max-height: 400px;
+  -o-object-fit: contain;
+  object-fit: contain;
   -o-object-position: center center;
   object-position: center center;
   transition: transform 0.3s ease;
@@ -163,6 +186,15 @@ export default {
 }
 
 .btn-share:hover {
+  background-color: #3367d6;
+}
+
+.btn-create-album {
+  background-color: #4285f4;
+  color: white;
+}
+
+.btn-create-album:hover {
   background-color: #3367d6;
 }
 

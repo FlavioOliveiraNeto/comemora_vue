@@ -5,7 +5,7 @@ export default {
   state: {
     organizedEvents: [],
     participatingEvents: [],
-    eventMedia: {} // Objeto para armazenar mídias por evento (key: eventId, value: array de mídias)
+    eventMedia: {}
   },
   mutations: {
     SET_ORGANIZED_EVENTS(state, events) {
@@ -101,7 +101,6 @@ export default {
 
     async updateEvent({ commit }, { id, formData }) {
       try {
-        // Converta boolean para string para o FormData
         if (!formData.has('keep_banner')) {
           formData.set('keep_banner', 'false');
         }
@@ -189,6 +188,17 @@ export default {
         return { success: true };
       } catch (error) {
         throw error;
+      }
+    },
+
+    async createEventAlbum(_, eventId) {
+      try {
+        const response = await api.post(`/api/events/${eventId}/create_album`, {}, {
+          responseType: 'blob'
+        });
+        return response;
+      } catch (error) {
+        throw new Error(error.response?.data?.message || error.message);
       }
     },
   },

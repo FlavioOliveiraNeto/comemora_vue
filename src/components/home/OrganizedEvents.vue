@@ -30,6 +30,7 @@
               Ver
             </button>
             <button
+              v-if="event.status !== 'finished'"
               @click="$emit('edit-event', event.id)"
               class="action-btn edit"
             >

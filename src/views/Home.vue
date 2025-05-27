@@ -139,7 +139,9 @@ export default {
   padding: 15px;
   background: #f5f5f5;
   border-radius: 8px;
-  text-align: center; /* Centralizar informações no mobile */
+  text-align: center;
+  display: grid;
+  justify-items: center;
 }
 
 .user-info h1 {
@@ -176,11 +178,13 @@ export default {
 .create-event-btn {
   background: #4285f4;
   color: white;
+  width: fit-content;
 }
 
 .logout-btn {
   background: #ff4444;
   color: white;
+  width: fit-content;
 }
 
 .events-section {
@@ -195,18 +199,6 @@ export default {
     max-width: 90vw;
     margin: 0 auto;
     padding: 20px;
-  }
-
-  .user-info {
-    text-align: left; /* Alinhar à esquerda em telas maiores */
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .user-actions {
-    flex-direction: row; /* Botões lado a lado em telas maiores */
-    margin-left: auto;
   }
 
   .create-event-btn {

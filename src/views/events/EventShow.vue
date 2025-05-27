@@ -31,6 +31,7 @@
         @edit="handleEdit"
         @delete="handleDelete"
         @leave="handleLeaveEvent"
+        @create-album="handleCreateAlbumEvent"
         context="show"
       />
 
@@ -46,6 +47,33 @@
         :currentUserId="currentUser.id"
         @media-captured="handleMediaCaptured"
         @remove-media="handleMediaRemoved"
+      />
+
+      <ConfirmationModal
+        :is-visible="showDeleteConfirmation"
+        title="Excluir Evento"
+        message="Tem certeza que deseja excluir este evento? Esta ação é irreversível."
+        confirm-text="Excluir"
+        @confirm="confirmDelete"
+        @close="showDeleteConfirmation = false"
+      />
+
+      <ConfirmationModal
+        :is-visible="showLeaveConfirmation"
+        title="Sair do Evento"
+        message="Tem certeza que deseja sair deste evento?"
+        confirm-text="Sair"
+        @confirm="confirmLeaveEvent"
+        @close="showLeaveConfirmation = false"
+      />
+
+      <ConfirmationModal
+        :is-visible="showCreateAlbumConfirmation"
+        title="Criar Álbum"
+        message="Tem certeza que deseja criar um álbum com as mídias atuais?"
+        confirm-text="Criar"
+        @confirm="confirmCreateAlbumEvent"
+        @close="showCreateAlbumConfirmation = false"
       />
     </template>
   </div>
@@ -63,6 +91,7 @@ import EventMedia from "../../components/events/EventMedia.vue";
 import EventLoading from "../../components/events/EventLoading.vue";
 import EventNotFound from "../../components/events/EventNotFound.vue";
 import ShareModal from "../../components/ShareModal.vue";
+import ConfirmationModal from "../../components/ConfirmationModal.vue";
 
 export default {
   components: {
@@ -72,6 +101,7 @@ export default {
     EventLoading,
     EventNotFound,
     ShareModal,
+    ConfirmationModal,
   },
   setup() {
     const store = useStore();
@@ -81,6 +111,11 @@ export default {
     const loading = ref(true);
     const showShareModal = ref(false);
     const shareModalRef = ref(null);
+
+    // Refs para controlar a visibilidade dos modais de confirmação
+    const showDeleteConfirmation = ref(false);
+    const showLeaveConfirmation = ref(false);
+    const showCreateAlbumConfirmation = ref(false);
 
     const currentUser = computed(() => store.getters["auth/currentUser"]);
 
@@ -145,29 +180,78 @@ export default {
       router.push(`/events/${event.value.id}/edit`);
     };
 
-    const handleDelete = async () => {
-      if (confirm("Tem certeza que deseja excluir este evento?")) {
-        try {
-          await store.dispatch("events/deleteEvent", event.value.id);
-          notifications.success(store, "Evento excluído com sucesso");
-          router.push("/home");
-        } catch (error) {
-          notifications.error(store, "Erro ao excluir evento");
-          console.error("Erro ao excluir evento:", error);
-        }
+    const handleDelete = () => {
+      showDeleteConfirmation.value = true;
+    };
+
+    const confirmDelete = async () => {
+      showDeleteConfirmation.value = false;
+      try {
+        await store.dispatch("events/deleteEvent", event.value.id);
+        notifications.success(store, "Evento excluído com sucesso");
+        router.push("/home");
+      } catch (error) {
+        notifications.error(store, "Erro ao excluir evento");
+        console.error("Erro ao excluir evento:", error);
       }
     };
 
-    const handleLeaveEvent = async () => {
-      if (confirm("Tem certeza que deseja sair deste evento?")) {
-        try {
-          await store.dispatch("events/leaveEvent", event.value.id);
-          notifications.success(store, "Você saiu do evento com sucesso");
-          router.push("/home");
-        } catch (error) {
-          notifications.error(store, "Erro ao sair do evento");
-          console.error("Erro ao sair do evento:", error);
-        }
+    const handleLeaveEvent = () => {
+      showLeaveConfirmation.value = true;
+    };
+
+    const confirmLeaveEvent = async () => {
+      showLeaveConfirmation.value = false;
+      try {
+        await store.dispatch("events/leaveEvent", event.value.id);
+        notifications.success(store, "Você saiu do evento com sucesso");
+        router.push("/home");
+      } catch (error) {
+        notifications.error(store, "Erro ao sair do evento");
+        console.error("Erro ao sair do evento:", error);
+      }
+    };
+
+    const handleCreateAlbumEvent = () => {
+      if (!event.value) {
+        notifications.error(store, "Evento não carregado.");
+        return;
+      }
+
+      if (mediaList.value.length === 0) {
+        notifications.info(store, "Não existem mídias nesse evento.");
+        return;
+      }
+
+      showCreateAlbumConfirmation.value = true;
+    };
+
+    const confirmCreateAlbumEvent = async () => {
+      showCreateAlbumConfirmation.value = false;
+      try {
+        const response = await store.dispatch(
+          "events/createEventAlbum",
+          event.value.id
+        );
+
+        const url = window.URL.createObjectURL(
+          new Blob([response.data], { type: "application/pdf" })
+        );
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute(
+          "download",
+          `${event.value.title.replace(/\s+/g, "-")}-album.pdf`
+        );
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+
+        notifications.success(store, "Álbum criado e download iniciado!");
+      } catch (error) {
+        notifications.error(store, "Erro ao criar álbum.");
+        console.error("Erro ao criar álbum:", error);
       }
     };
 
@@ -218,12 +302,19 @@ export default {
       calculateDuration,
       handleEdit,
       handleDelete,
+      confirmDelete,
       handleLeaveEvent,
+      confirmLeaveEvent,
+      handleCreateAlbumEvent,
+      confirmCreateAlbumEvent,
       handleCancel,
       router,
       mediaList,
       handleMediaCaptured,
       handleMediaRemoved,
+      showDeleteConfirmation,
+      showLeaveConfirmation,
+      showCreateAlbumConfirmation,
     };
   },
 };

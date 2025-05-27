@@ -1,6 +1,6 @@
 <template>
   <div class="media-feed">
-    <div class="media-buttons">
+    <div v-if="event.status !== 'finished'" class="media-buttons">
       <button
         class="media-button photo-button"
         @click="openSourceSelection('photo')"
