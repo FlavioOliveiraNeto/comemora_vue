@@ -10,6 +10,7 @@ import EventNew from '@/views/events/EventNew.vue'
 import EventEdit from '@/views/events/EventEdit.vue'
 import EventShow from '@/views/events/EventShow.vue'
 import EventJoin from '@/views/events/EventJoin.vue'
+import EventAlbum from "@/components/events/EventAlbum.vue"
 
 const router = createRouter({
   history: createWebHistory(),
@@ -84,6 +85,12 @@ const router = createRouter({
       name: 'EventJoin',
       component: EventJoin,
       meta: { requiresAuth: false }
+    },
+    {
+      path: '/events/:id/album',
+      name: 'EventAlbum',
+      component: EventAlbum,
+      meta: { requiresAuth: true }
     },
     {
       path: '/:pathMatch(.*)*',

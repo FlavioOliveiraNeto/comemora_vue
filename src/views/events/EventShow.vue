@@ -228,31 +228,7 @@ export default {
 
     const confirmCreateAlbumEvent = async () => {
       showCreateAlbumConfirmation.value = false;
-      try {
-        const response = await store.dispatch(
-          "events/createEventAlbum",
-          event.value.id
-        );
-
-        const url = window.URL.createObjectURL(
-          new Blob([response.data], { type: "application/pdf" })
-        );
-        const link = document.createElement("a");
-        link.href = url;
-        link.setAttribute(
-          "download",
-          `${event.value.title.replace(/\s+/g, "-")}-album.pdf`
-        );
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-
-        notifications.success(store, "Álbum criado e download iniciado!");
-      } catch (error) {
-        notifications.error(store, "Erro ao criar álbum.");
-        console.error("Erro ao criar álbum:", error);
-      }
+      router.push({ name: "EventAlbum", params: { id: event.value.id } });
     };
 
     const handleMediaCaptured = async (mediaData) => {

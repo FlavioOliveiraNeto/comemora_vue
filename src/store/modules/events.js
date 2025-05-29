@@ -190,17 +190,6 @@ export default {
         throw error;
       }
     },
-
-    async createEventAlbum(_, eventId) {
-      try {
-        const response = await api.post(`/api/events/${eventId}/create_album`, {}, {
-          responseType: 'blob'
-        });
-        return response;
-      } catch (error) {
-        throw new Error(error.response?.data?.message || error.message);
-      }
-    },
   },
   getters: {
     organizedEvents: state => state.organizedEvents,
