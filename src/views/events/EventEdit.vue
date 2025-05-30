@@ -59,7 +59,6 @@ export default {
     },
     async handleUpdateEvent(formData) {
       this.loadingSubmit = true;
-      console.log(formData);
       try {
         const response = await this.$store.dispatch("events/updateEvent", {
           id: this.$route.params.id,

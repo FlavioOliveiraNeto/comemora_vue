@@ -9,6 +9,8 @@ const app = createApp(App)
 // Configurar axios globalmente
 app.config.globalProperties.$api = api
 
+app.config.productionTip = false;
+
 // Configurar interceptors
 api.interceptors.request.use(config => {
   const token = store.state.auth.token

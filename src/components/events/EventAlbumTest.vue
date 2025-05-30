@@ -27,7 +27,7 @@ export default {
         height: 800,
         size: "stretch",
         maxShadowOpacity: 0.5,
-        showCover: false,
+        showCover: true,
         mobileScrollSupport: false,
       }
     );
