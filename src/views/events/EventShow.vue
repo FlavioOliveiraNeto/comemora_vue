@@ -75,6 +75,15 @@
         @confirm="confirmCreateAlbumEvent"
         @close="showCreateAlbumConfirmation = false"
       />
+
+      <button
+        v-if="isAdmin && event.status === 'active' && isEventExpired"
+        type="button"
+        @click="finalizeEvent"
+        class="btn btn-primary"
+      >
+        Finalizar Evento
+      </button>
     </template>
   </div>
 </template>
@@ -137,6 +146,11 @@ export default {
     const inviteLink = computed(() => {
       if (!event.value) return "";
       return `${window.location.origin}/events/${event.value.id}/join?token=${event.value.invite_token}`;
+    });
+
+    const isEventExpired = computed(() => {
+      if (!event.value?.end_date) return false;
+      return moment().isAfter(moment(event.value.end_date));
     });
 
     onMounted(async () => {
@@ -265,6 +279,37 @@ export default {
       router.push("/home");
     };
 
+    // Função para finalizar o evento via backend
+    const finalizeEvent = async () => {
+      if (!event.value) {
+        notifications.error(store, "Evento não carregado.");
+        return;
+      }
+
+      try {
+        const response = await store.dispatch(
+          "events/finalizeEvent",
+          event.value.id
+        );
+        if (response.success) {
+          notifications.success(store, "Evento finalizado com sucesso.");
+          // Atualiza o status do evento localmente
+          event.value.status = "finished";
+        } else {
+          notifications.error(
+            store,
+            response.error || "Erro ao finalizar o evento."
+          );
+        }
+      } catch (error) {
+        notifications.error(
+          store,
+          "Erro ao comunicar com o servidor para finalizar o evento."
+        );
+        console.error("Erro ao finalizar evento:", error);
+      }
+    };
+
     return {
       event,
       loading,
@@ -291,6 +336,8 @@ export default {
       showDeleteConfirmation,
       showLeaveConfirmation,
       showCreateAlbumConfirmation,
+      isEventExpired,
+      finalizeEvent,
     };
   },
 };
@@ -315,6 +362,15 @@ export default {
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #0056b3;
 }
 
 .btn-secondary {

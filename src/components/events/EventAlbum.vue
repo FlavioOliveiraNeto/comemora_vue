@@ -144,9 +144,9 @@ export default {
 }
 
 .page {
-  background-color: hsl(35, 55, 98);
-  color: hsl(35, 35, 35);
-  border: solid 1px hsl(35, 20, 70);
+  background-color: hsl(35, 55%, 98%);
+  color: hsl(35, 35%, 35%);
+  border: solid 1px hsl(35, 20%, 70%);
   border-radius: 1rem;
   overflow: hidden;
 
@@ -180,15 +180,15 @@ export default {
       margin: 0px;
       padding: 10px 0 0 0;
       box-sizing: border-box;
-      border-top: solid 1px hsl(35, 55, 90);
+      border-top: solid 1px hsl(35, 55%, 90%);
     }
 
     .page-footer {
       width: 90%;
       height: fit-content;
-      border-top: solid 1px hsl(35, 55, 90);
+      border-top: solid 1px hsl(35, 55%, 90%);
       font-size: 1rem;
-      color: hsl(35, 20, 50);
+      color: hsl(35, 20%, 50%);
       display: flex;
       justify-content: space-between;
     }
@@ -208,14 +208,14 @@ export default {
 
   &.hard {
     // for hard page
-    background-color: hsl(35, 50, 90);
-    border: solid 1px hsl(35, 20, 50);
+    background-color: hsl(35, 50%, 90%);
+    border: solid 1px hsl(35, 20%, 50%);
   }
 
   &.page-cover {
-    background-color: hsl(35, 45, 80);
-    color: hsl(35, 35, 35);
-    border: solid 1px hsl(35, 20, 50);
+    background-color: hsl(35, 45%, 80%);
+    color: hsl(35, 35%, 35%);
+    border: solid 1px hsl(35, 20%, 50%);
 
     h2 {
       text-align: center;

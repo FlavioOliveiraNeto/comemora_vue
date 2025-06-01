@@ -190,6 +190,17 @@ export default {
         throw error;
       }
     },
+
+    async finalizeEvent({ commit }, eventId) {
+      try {
+        const response = await api.patch(`/api/events/${eventId}`, { event: { status: 'finished' } });
+        commit('UPDATE_EVENT', response.data.evento); 
+        return { success: true, data: response.data };
+      } catch (error) {
+        console.error("Erro ao finalizar evento no Vuex store:", error);
+        return { success: false, error: error.response?.data?.message || 'Erro ao finalizar o evento no servidor.' };
+      }
+    },
   },
   getters: {
     organizedEvents: state => state.organizedEvents,
