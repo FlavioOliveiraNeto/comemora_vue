@@ -4,7 +4,7 @@ import store from '@/store'
 import Home from '@/views/Home.vue'
 
 import Auth from '@/views/authentication/Auth.vue'
-import ConfirmAccount from '@/views/authentication/ConfirmAccount.vue'
+import EmailConfirm from '../components/authentication/EmailConfirm.vue'
 
 import EventNew from '@/views/events/EventNew.vue'
 import EventEdit from '@/views/events/EventEdit.vue'
@@ -34,10 +34,9 @@ const router = createRouter({
       ]
     },
     {
-      path: '/confirm',
-      name: 'confirm',
-      component: ConfirmAccount,
-      meta: { guest: true }
+      path: '/confirmar-email',
+      name: 'confirmar-email',
+      component: EmailConfirm,
     },
     {
       path: '/password',
