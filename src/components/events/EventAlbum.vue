@@ -158,15 +158,16 @@ export default {
 .container {
   height: 100vh;
   width: 99vw;
-  display: flex;
+  display: grid;
+  grid-template-rows: min-content;
   align-items: center;
-  justify-content: space-evenly;
-  position: relative;
+  justify-items: center;
 }
 
 .btn {
+  width: fit-content;
   padding: 0.5rem 1rem;
-  margin-left: 1rem;
+  margin: 1rem 0 0 1rem;
   border: none;
   border-radius: 8px;
   font-size: 1rem;
